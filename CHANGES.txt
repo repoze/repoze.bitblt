@@ -1,1 +1,11 @@
-repoze.bitblt 0.1 (dev)
+Changelog
+=========
+
+
+Head
+~~~~
+
+0.1 (2008-10-03)
+~~~~~~~~~~~~~~~~
+
+- Initial release.
