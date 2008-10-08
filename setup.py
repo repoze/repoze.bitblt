@@ -12,7 +12,7 @@
 #
 ##############################################################################
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 import os
 
@@ -52,7 +52,7 @@ setup(name='repoze.bitblt',
       test_suite="repoze.bitblt.tests",
       entry_points = """\
       [paste.filter_app_factory]
-      profile = repoze.bitblt.processor:make_bitblt_middleware
+      bitblt = repoze.bitblt.processor:make_bitblt_middleware
       """
       )
 
