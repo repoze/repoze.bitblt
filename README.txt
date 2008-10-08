@@ -1,5 +1,5 @@
-repoze.bitblt README
-====================
+Overview
+========
 
 This package provides a WSGI middleware component which transforms and
 converts image streams using PIL.
@@ -26,6 +26,7 @@ Future plans
 ------------
 
 Support video transcoding.
+
 
 Credits
 -------
