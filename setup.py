@@ -48,6 +48,7 @@ setup(name='repoze.bitblt',
       zip_safe=False,
       install_requires=[
            'PIL',
+           'WebOb',
                  ],
       test_suite="repoze.bitblt.tests",
       entry_points = """\

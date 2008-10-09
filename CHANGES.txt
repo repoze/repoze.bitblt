@@ -4,6 +4,10 @@ Changelog
 Head
 ~~~~
 
+- Fixed bug where parameters would be drawn from the WSGI environment. [malthe]
+
+- Added mimetype conversion. [malthe]
+
 0.2 (released 2008-10-08)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -1,5 +1,8 @@
 import unittest
 import base64
+import webob
+import urllib
+import Image
 
 from StringIO import StringIO
 
@@ -10,52 +13,55 @@ class TestProfileMiddleware(unittest.TestCase):
 
     def test_scaling(self):
         middleware = self._makeOne(None)
-        image = middleware.process(
-            StringIO(jpeg_image_data), (32, 32), 'image/jpeg')
+        f = middleware.process(
+            StringIO(jpeg_image_data), (32, 32), 'image/jpeg', 80)
+        image = Image.open(f)
         self.assertEqual(image.size, (32, 32))
 
     def test_call_content_type_not_image(self):
-        environ = {}
         body = "<html><body>Hello, world!</body></html>"
+        request = webob.Request.blank("")
         
         def mock_app(environ, start_response):
-            start_response('200 OK', [('content-type', 'text/html'),
-                                      ('content-length', str(len(body)))])
-            return (body,)
-
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
         response = []
         def start_response(*args):
             response.extend(args)
 
         middleware = self._makeOne(mock_app)
-        result = middleware(environ, start_response)
+        result = middleware(request.environ, start_response)
         self.assertEqual(result, (body,))
         self.assertEqual(response, [
-            '200 OK', [('content-type', 'text/html'), ('content-length', '39')], None])
+            '200 OK', [('content-type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
         
     def test_call_content_type_is_image(self):
-        environ = {
+        params = {
             'mimetype': 'image/jpeg',
             'width': '32',
             'height': '32'}
 
+        request = webob.Request.blank('?' + urllib.urlencode(params))
         response = []
 
         def mock_start_response(status, headers, exc_info=None):
-            response.append(status)
-            response.extend(headers)
+            response.extend((status, headers))
             
         def mock_app(environ, start_response):
-            body = jpeg_image_data
-            start_response('200 OK', [('content-type', 'image/jpeg'),
-                                      ('content-length', str(len(body)))])
-            return (body,)
+            response = webob.Response(jpeg_image_data, content_type='image/jpeg')
+            response(environ, start_response)
+            return (response.body,)
 
         middleware = self._makeOne(mock_app)
-        result = middleware(environ, mock_start_response)
-        self.assertEqual(len("".join(result)), 3072)
-        self.assertEqual(response, [
-            '200 OK', ('content-type', 'image/jpeg'), ('content-length', '3072'), None])
+        result = middleware(request.environ, mock_start_response)
+        self.assertEqual(len("".join(result)), 1067)
+        status, headers = response
+        headers = webob.HeaderDict(headers)
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(headers['content-type'], 'image/jpeg')
+        self.assertEqual(headers['content-length'], '1067')
         
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC

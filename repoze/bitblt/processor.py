@@ -1,6 +1,7 @@
 """ Middleware that transforms images."""
 
 import os
+import webob
 
 import PIL # to get useful exception if missing
 import Image
@@ -8,58 +9,47 @@ import Image
 from StringIO import StringIO
 
 class ImageTransformationMiddleware(object):
-    def __init__(self, app, global_conf=None):
+    def __init__(self, app, global_conf=None, quality=80):
+        self.quality = quality
         self.app = app
 
-    def process(self, data, size, mimetype):
+    def process(self, data, size, mimetype, quality):
         image = Image.open(data)
         if size != image.size:
             image.thumbnail(size)
 
-        return image
+        f = StringIO()
+        
+        image.save(f, mimetype.split('/')[-1].upper(), quality=quality)
+        f.seek(0)
+
+        return f
 
     def __call__(self, environ, start_response):
-        catch_response = []
+        request = webob.Request(environ)
+        response = request.get_response(self.app)
         
-        def replace_start_response(status, headers, exc_info=None):
-            catch_response.extend([status, headers, exc_info])
-
-        app_iter = self.app(environ, replace_start_response)
-
-        status, headers, exc_info = catch_response
-        for name, value in headers:
-            if name == 'content-type':
-                content_type = value
-                break
-        else:
-            # response does not set content type
-            start_response(*catch_response)
-            return app_iter
-            
-        if content_type and content_type.startswith('image/'):
-            mimetype = environ.get('mimetype')
-            width = environ.get('width')
-            height = environ.get('height')
+        if response.content_type and response.content_type.startswith('image/'):
+            mimetype = request.params.get('mimetype')
+            quality = request.params.get('quality', self.quality)
+            width = request.params.get('width')
+            height = request.params.get('height')
 
             try:
                 size = (int(width), int(height))
-            except ValueError:
+            except (ValueError, TypeError):
                 raise ValueError("Width and height parameters must be integers.")
 
+            app_iter = response.app_iter
             if not hasattr(app_iter, 'read'):
                 app_iter = StringIO("".join(app_iter))
                 
-            image = self.process(app_iter, size, mimetype)
-            body = image.tostring()
-            start_response('200 OK', [
-                ('content-type', 'image/%s' % image.format.lower()),
-                ('content-length', str(len(body))),
-                exc_info])
+            f = self.process(app_iter, size, mimetype, quality)
+            response.content_type = mimetype
+            response.app_iter = f
+            response.content_length = f.len
             
-            return (body,)
-
-        start_response(*catch_response)
-        return app_iter
+        return response(environ, start_response)
 
 def make_bitblt_middleware(app, global_conf):
     return ImageTransformationMiddleware(app, global_conf)

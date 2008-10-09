@@ -13,6 +13,7 @@ The middleware responds to the following URL parameters:
   @width      Width
   @height     Height
   @mimetype   MIME-type 
+  @quality    Image quality (default is 80)
   
 Example:
 
