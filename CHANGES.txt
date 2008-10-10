@@ -4,7 +4,10 @@ Changelog
 Head
 ~~~~
 
-- Made logic robust to unexpected parameter values. [malthe]
+0.3 (released 2008-10-10)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Made logic robust to unexpected parameters. [malthe]
 
 - Fixed bug where parameters would be drawn from the WSGI environment. [malthe]
 
