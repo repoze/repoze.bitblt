@@ -4,6 +4,8 @@ Changelog
 Head
 ~~~~
 
+- Made logic robust to unexpected parameter values. [malthe]
+
 - Fixed bug where parameters would be drawn from the WSGI environment. [malthe]
 
 - Added mimetype conversion. [malthe]
