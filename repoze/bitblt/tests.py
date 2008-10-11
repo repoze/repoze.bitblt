@@ -11,11 +11,39 @@ class TestProfileMiddleware(unittest.TestCase):
         from repoze.bitblt.processor import ImageTransformationMiddleware
         return ImageTransformationMiddleware(*arg, **kw)
 
+    def test_rewrite_html(self):
+        body = '''\
+        <html>
+          <body>
+            <img src="foo.png" width="640" height="480" />
+            <img src="http://host/bar.png" width="640" height="480" />
+          </body>
+        </html>'''
+
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app)
+        result = middleware(request.environ, start_response)
+        self.failUnless("bitblt-640x480/foo.png" in "".join(result))
+        self.failUnless("http://host/bitblt-640x480/bar.png" in "".join(result))
+        self.assertEqual(response, [
+            '200 OK', [('content-type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '169')]])
+        
     def test_scaling(self):
         middleware = self._makeOne(None)
         f = middleware.process(
-            StringIO(jpeg_image_data), (32, 32), 'image/jpeg', 80)
-        image = Image.open(f)
+            StringIO(jpeg_image_data), (32, 32))
+        image = Image.open(StringIO(f))
         self.assertEqual(image.size, (32, 32))
 
     def test_call_content_type_not_image(self):
@@ -33,17 +61,12 @@ class TestProfileMiddleware(unittest.TestCase):
 
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, start_response)
-        self.assertEqual(result, (body,))
+        self.assertEqual(result, [body])
         self.assertEqual(response, [
             '200 OK', [('content-type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
         
     def test_call_content_type_is_image(self):
-        params = {
-            'mimetype': 'image/jpeg',
-            'width': '32',
-            'height': '32'}
-
-        request = webob.Request.blank('?' + urllib.urlencode(params))
+        request = webob.Request.blank('bitblt-32x32/foo.jpg')
         response = []
 
         def mock_start_response(status, headers, exc_info=None):
@@ -56,6 +79,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, mock_start_response)
+        self.failIf('bitblt' in request.url)
         self.assertEqual(len("".join(result)), 1067)
         status, headers = response
         headers = webob.HeaderDict(headers)

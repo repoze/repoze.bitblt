@@ -4,6 +4,16 @@ Changelog
 Head
 ~~~~
 
+- Added HTML document processing which scans document for image tags
+  and rewrite image ``src`` attribute to include "bitblt" traversing
+  directive. This makes it work as an actual middleware, since the
+  application semantics are then unchanged. [malthe]
+
+- No longer accept query parameters, but instead require traversing
+  directive "/bitblt-<width>x<height>". [malthe]
+
+- Removed functionality to MIME-type convert. [malthe]
+
 0.3 (released 2008-10-10)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
