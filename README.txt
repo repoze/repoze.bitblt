@@ -1,28 +1,31 @@
 Overview
 ========
 
-This package provides a WSGI middleware component which transforms and
-converts image streams using PIL.
-
+This package provides a WSGI middleware component which automatically
+scales images according to the ``width`` and ``height`` property in
+the <img> tag.
 
 Usage
 -----
 
-The middleware works by looking for a "traversing directive"::
+The middleware operates in two phases, on HTML documents and images
+respectively.
 
-  <img src="http://host/path/bitblt-640x480/image.jpg" />
+When processing HTML documents, it looks for image tags in the
+document soup::
 
-When a request comes in that matches the directive, the image is
-transformed and the directive is removed from the request.
+  <img src="some_image.png" width="640" height="480" />
 
-However, by specifying ``width`` and ``height`` attributes in
-<img>-tags in served HTML documents, the middleware will do this
-rewriting itself.
+In the case it finds such an image element, it rewrites the URL to
+include scaling information which the middleware will read when the
+image is served through it.
 
-As such, the middleware is transparent: adding it to the pipeline
-merely makes pages load more effectively, since images will be scaled
-to desired size.
+This effectively means that application developers needn't worry about
+image scaling; simply put the desired size in the HTML document.
 
+Note that this middleware is protected from DoS attacks (which is
+important for any middleware that does significant processing) by
+signing all URLs with an SHA digest signature.
 
 Credits
 -------

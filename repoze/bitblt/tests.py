@@ -2,9 +2,10 @@ import unittest
 import base64
 import webob
 import urllib
-import Image
+import transform
 
 from StringIO import StringIO
+import Image
 
 class TestProfileMiddleware(unittest.TestCase):
     def _makeOne(self, *arg, **kw):
@@ -34,12 +35,16 @@ class TestProfileMiddleware(unittest.TestCase):
 
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, start_response)
-        self.failUnless("bitblt-640x480/foo.png" in "".join(result))
-        self.failUnless("http://host/bitblt-640x480/bar.png" in "".join(result))
-        self.failUnless("http://host/path/bitblt-640x480/hat.png" in "".join(result))
+        width = "640"
+        height = "480"
+        signature = transform.compute_signature(width, height, middleware.key)
+        directive = "bitblt-%sx%s-%s" % (width, height, signature)
+        self.failUnless("%s/foo.png" % directive in "".join(result))
+        self.failUnless("http://host/%s/bar.png" % directive in "".join(result))
+        self.failUnless("http://host/path/%s/hat.png" % directive in "".join(result))
         self.assertEqual(response, [
             '200 OK', [('content-type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '245')]])
+                       ('Content-Length', '368')]])
         
     def test_scaling(self):
         middleware = self._makeOne(None)
@@ -68,7 +73,6 @@ class TestProfileMiddleware(unittest.TestCase):
             '200 OK', [('content-type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
         
     def test_call_content_type_is_image(self):
-        request = webob.Request.blank('bitblt-32x32/foo.jpg')
         response = []
 
         def mock_start_response(status, headers, exc_info=None):
@@ -81,6 +85,13 @@ class TestProfileMiddleware(unittest.TestCase):
             return (response.body,)
 
         middleware = self._makeOne(mock_app)
+
+        width = height = "32"
+        signature = transform.compute_signature(width, height, middleware.key)
+        
+        request = webob.Request.blank('bitblt-%sx%s-%s/foo.jpg' % (
+            width, height, signature))
+
         result = middleware(request.environ, mock_start_response)
         self.assertEqual(len("".join(result)), 1067)
         status, headers = response

@@ -2,6 +2,7 @@
 
 import os
 import re
+import hashlib
 import webob
 
 import PIL # to get useful exception if missing
@@ -9,25 +10,21 @@ import Image
 
 from cStringIO import StringIO
 
-re_bitblt = re.compile(r'bitblt-(?P<width>\d+)x(?P<height>\d+)/')
+from transform import rewrite_image_tags
+from transform import verify_signature
 
-try:
-    import lxml.html
-    from transform import rewrite_image_tags
-    
-except ImportError:
-    import logging
-    logging.getLogger("repoze.bitblt").warn(
-        "Unable to process documents; ``lxml`` missing.")
+re_bitblt = re.compile(r'bitblt-(?P<width>\d+)x(?P<height>\d+)-(?P<signature>[a-z0-9]+)/')
 
-    def rewrite_image_tags(body):
-        return body
-        
 class ImageTransformationMiddleware(object):
-    def __init__(self, app, global_conf=None, quality=80):
+    def __init__(self, app, global_conf=None, quality=80, key=None):
         self.quality = quality
         self.app = app
 
+        if key is None:
+            key = hashlib.sha1().hexdigest()
+            
+        self.key = key
+        
     def process(self, data, size):
         image = Image.open(data)
         if size != image.size:
@@ -44,6 +41,8 @@ class ImageTransformationMiddleware(object):
         if m is not None:
             width = m.group('width')
             height = m.group('height')
+            signature = m.group('signature')
+            verified = verify_signature(width, height, self.key, signature)
 
             # remove bitblt part in path info
             request.path_info = re_bitblt.sub("", request.path_info)
@@ -53,10 +52,10 @@ class ImageTransformationMiddleware(object):
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
-            response.body = rewrite_image_tags(response.body)
+            response.body = rewrite_image_tags(response.body, self.key)
         
         if response.content_type and response.content_type.startswith('image/'):
-            if width and height:
+            if verified and width and height:
                 try:
                     size = (int(width), int(height))
                 except (ValueError, TypeError):

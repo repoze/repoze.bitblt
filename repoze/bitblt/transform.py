@@ -1,7 +1,14 @@
 import lxml.html
 import urlparse
+import hashlib
 
-def rewrite_image_tags(body):
+def compute_signature(width, height, key):
+    return hashlib.sha1("%s:%s:%s" % (width, height, key)).hexdigest()
+
+def verify_signature(width, height, key, signature):
+    return signature == compute_signature(width, height, key)
+
+def rewrite_image_tags(body, key):
     root = lxml.html.document_fromstring(body)
     for img in root.findall('.//img'):
         width = img.attrib.get('width')
@@ -10,9 +17,10 @@ def rewrite_image_tags(body):
         
         if width and height and src:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
-
+            signature = compute_signature(width, height, key)
+            
             parts = path.split('/')
-            parts.insert(-1, 'bitblt-%sx%s' % (width, height))
+            parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
                 
             path = '/'.join(filter(None, parts))
 

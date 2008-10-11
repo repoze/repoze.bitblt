@@ -46,12 +46,10 @@ setup(name='repoze.bitblt',
       include_package_data=True,
       namespace_packages=['repoze'],
       zip_safe=False,
-      tests_require=[
-           'lxml>=2.1.1',
-           ],
       install_requires=[
            'PIL',
            'WebOb',
+           'lxml',
            ],
       test_suite="repoze.bitblt.tests",
       entry_points = """\
