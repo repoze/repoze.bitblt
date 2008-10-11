@@ -12,7 +12,7 @@ def rewrite_image_tags(body):
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
 
             parts = path.split('/')
-            parts.insert(-2, 'bitblt-%sx%s' % (width, height))
+            parts.insert(-1, 'bitblt-%sx%s' % (width, height))
                 
             path = '/'.join(filter(None, parts))
 

@@ -17,6 +17,7 @@ class TestProfileMiddleware(unittest.TestCase):
           <body>
             <img src="foo.png" width="640" height="480" />
             <img src="http://host/bar.png" width="640" height="480" />
+            <img src="http://host/path/hat.png" width="640" height="480" />
           </body>
         </html>'''
 
@@ -35,9 +36,10 @@ class TestProfileMiddleware(unittest.TestCase):
         result = middleware(request.environ, start_response)
         self.failUnless("bitblt-640x480/foo.png" in "".join(result))
         self.failUnless("http://host/bitblt-640x480/bar.png" in "".join(result))
+        self.failUnless("http://host/path/bitblt-640x480/hat.png" in "".join(result))
         self.assertEqual(response, [
             '200 OK', [('content-type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '169')]])
+                       ('Content-Length', '245')]])
         
     def test_scaling(self):
         middleware = self._makeOne(None)
@@ -73,13 +75,13 @@ class TestProfileMiddleware(unittest.TestCase):
             response.extend((status, headers))
             
         def mock_app(environ, start_response):
+            self.failIf('bitblt' in environ.get('PATH_INFO'))
             response = webob.Response(jpeg_image_data, content_type='image/jpeg')
             response(environ, start_response)
             return (response.body,)
 
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, mock_start_response)
-        self.failIf('bitblt' in request.url)
         self.assertEqual(len("".join(result)), 1067)
         status, headers = response
         headers = webob.HeaderDict(headers)

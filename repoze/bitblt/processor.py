@@ -39,20 +39,24 @@ class ImageTransformationMiddleware(object):
 
     def __call__(self, environ, start_response):
         request = webob.Request(environ)
+
+        m = re_bitblt.search(request.path_info)
+        if m is not None:
+            width = m.group('width')
+            height = m.group('height')
+
+            # remove bitblt part in path info
+            request.path_info = re_bitblt.sub("", request.path_info)
+        else:
+            width = height = None
+            
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
             response.body = rewrite_image_tags(response.body)
         
         if response.content_type and response.content_type.startswith('image/'):
-            m = re_bitblt.search(request.path_info)
-            if m is not None:
-                width = m.group('width')
-                height = m.group('height')
-
-                # remove bitblt part in path info
-                request.path_info = re_bitblt.sub("", request.path_info)
-
+            if width and height:
                 try:
                     size = (int(width), int(height))
                 except (ValueError, TypeError):

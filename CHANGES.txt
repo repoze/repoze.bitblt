@@ -4,6 +4,8 @@ Changelog
 Head
 ~~~~
 
+- Fixed path handling. [malthe]
+
 - Added HTML document processing which scans document for image tags
   and rewrite image ``src`` attribute to include "bitblt" traversing
   directive. This makes it work as an actual middleware, since the
