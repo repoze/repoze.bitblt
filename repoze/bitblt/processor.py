@@ -16,14 +16,13 @@ from transform import verify_signature
 re_bitblt = re.compile(r'bitblt-(?P<width>\d+)x(?P<height>\d+)-(?P<signature>[a-z0-9]+)/')
 
 class ImageTransformationMiddleware(object):
-    def __init__(self, app, global_conf=None, quality=80, key=None):
+    def __init__(self, app, global_conf=None, quality=80, secret=None):
+        if secret is None:
+            raise ValueError("Must configure ``secret``.")
+
         self.quality = quality
         self.app = app
-
-        if key is None:
-            key = hashlib.sha1().hexdigest()
-            
-        self.key = key
+        self.secret = secret
         
     def process(self, data, size):
         image = Image.open(data)
@@ -42,7 +41,7 @@ class ImageTransformationMiddleware(object):
             width = m.group('width')
             height = m.group('height')
             signature = m.group('signature')
-            verified = verify_signature(width, height, self.key, signature)
+            verified = verify_signature(width, height, self.secret, signature)
 
             # remove bitblt part in path info
             request.path_info = re_bitblt.sub("", request.path_info)
@@ -52,7 +51,7 @@ class ImageTransformationMiddleware(object):
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
-            response.body = rewrite_image_tags(response.body, self.key)
+            response.body = rewrite_image_tags(response.body, self.secret)
         
         if response.content_type and response.content_type.startswith('image/'):
             if verified and width and height:
@@ -71,5 +70,5 @@ class ImageTransformationMiddleware(object):
             
         return response(environ, start_response)
 
-def make_bitblt_middleware(app, global_conf):
-    return ImageTransformationMiddleware(app, global_conf)
+def make_bitblt_middleware(app, global_conf, **kwargs):
+    return ImageTransformationMiddleware(app, global_conf, **kwargs)

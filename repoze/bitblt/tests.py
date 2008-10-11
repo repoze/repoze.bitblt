@@ -10,7 +10,7 @@ import Image
 class TestProfileMiddleware(unittest.TestCase):
     def _makeOne(self, *arg, **kw):
         from repoze.bitblt.processor import ImageTransformationMiddleware
-        return ImageTransformationMiddleware(*arg, **kw)
+        return ImageTransformationMiddleware(secret='secret', *arg, **kw)
 
     def test_rewrite_html(self):
         body = '''\
@@ -37,7 +37,7 @@ class TestProfileMiddleware(unittest.TestCase):
         result = middleware(request.environ, start_response)
         width = "640"
         height = "480"
-        signature = transform.compute_signature(width, height, middleware.key)
+        signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         self.failUnless("%s/foo.png" % directive in "".join(result))
         self.failUnless("http://host/%s/bar.png" % directive in "".join(result))
@@ -87,7 +87,7 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(mock_app)
 
         width = height = "32"
-        signature = transform.compute_signature(width, height, middleware.key)
+        signature = transform.compute_signature(width, height, middleware.secret)
         
         request = webob.Request.blank('bitblt-%sx%s-%s/foo.jpg' % (
             width, height, signature))

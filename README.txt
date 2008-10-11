@@ -5,6 +5,9 @@ This package provides a WSGI middleware component which automatically
 scales images according to the ``width`` and ``height`` property in
 the <img> tag.
 
+To configure the middleware, pass in a string for ``secret``; this may
+be any string internal to the system.
+
 Usage
 -----
 
