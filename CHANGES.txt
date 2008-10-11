@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+0.4 (released 2008-10-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Fixed path handling. [malthe]
 
 - Added HTML document processing which scans document for image tags
