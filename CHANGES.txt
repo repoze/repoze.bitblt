@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+0.6 (released 2008-10-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Require to pass in a ``secret`` parameter to configure middleware
   security. [malthe]
 
