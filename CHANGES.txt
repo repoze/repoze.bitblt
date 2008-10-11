@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+0.5 (released 2008-10-11)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Rewritten URLs are now signed by the middleware to ensure that
   bitblt requests are only crafted by the middleware. This is required
   to shield against DoS attacks. [malthe]
