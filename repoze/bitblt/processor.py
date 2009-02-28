@@ -5,11 +5,8 @@ import re
 import hashlib
 import webob
 
-try:
-    import PIL.Image as Image
-except ImportError:
-    import PIL # to get useful exception if missing
-    import Image
+import PIL # to get useful exception if missing
+import Image
 
 from cStringIO import StringIO
 
