@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Added scaling filter support.
+  [fschulze]
+
 - Support image tags with only one of the width or height attributes set.
   [fschulze]
 

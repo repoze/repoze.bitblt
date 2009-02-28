@@ -19,13 +19,20 @@ from transform import verify_signature
 re_bitblt = re.compile(r'bitblt-(?P<width>\d+|None)x(?P<height>\d+|None)-(?P<signature>[a-z0-9]+)/')
 
 class ImageTransformationMiddleware(object):
-    def __init__(self, app, global_conf=None, quality=80, secret=None):
+    def __init__(self, app, global_conf=None, quality=80,
+                 secret=None, filter='antialias'):
         if secret is None:
             raise ValueError("Must configure ``secret``.")
 
         self.quality = quality
         self.app = app
         self.secret = secret
+        self.filter = {
+            'nearest': Image.NEAREST,
+            'bilinear': Image.BILINEAR,
+            'bicubic': Image.BICUBIC,
+            'antialias': Image.ANTIALIAS,
+        }.get(filter.lower(), 'antialias')
 
     def process(self, data, size):
         image = Image.open(data)
@@ -34,7 +41,7 @@ class ImageTransformationMiddleware(object):
                 size = (image.size[0], size[1])
             elif size[1] is None:
                 size = (size[0], image.size[1])
-            image.thumbnail(size)
+            image.thumbnail(size, self.filter)
 
         f = StringIO()
         image.save(f, image.format.upper(), quality=self.quality)

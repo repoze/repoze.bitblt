@@ -109,12 +109,12 @@ class TestProfileMiddleware(unittest.TestCase):
             width, height, signature))
 
         result = middleware(request.environ, mock_start_response)
-        self.assertEqual(len("".join(result)), 1067)
+        self.assertEqual(len("".join(result)), 1050)
         status, headers = response
         headers = webob.HeaderDict(headers)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
-        self.assertEqual(headers['content-length'], '1067')
+        self.assertEqual(headers['content-length'], '1050')
 
     def test_call_is_untransformed_image(self):
         response = []

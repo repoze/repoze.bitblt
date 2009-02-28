@@ -8,6 +8,14 @@ the <img> tag.
 To configure the middleware, pass in a string for ``secret``; this may
 be any string internal to the system.
 
+You can also set ``filter`` to select the scaling filter. The available
+filters are ``nearest``, ``bilinear``, ``bicubic`` and ``antialias``. The
+default is ``antialias``.
+
+If you want to change the compression level for JPEG images, then you can set
+the ``quality`` option to a value between 1 (worst) and 95 (best). The default
+is 80.
+
 Usage
 -----
 
