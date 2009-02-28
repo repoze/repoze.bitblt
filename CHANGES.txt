@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Added support for xhtml, which allows the inclusion of namespace tags.
+  [fschulze]
+
 - Added option to limit the url rewriting to urls below the application url.
   [fschulze]
 

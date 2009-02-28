@@ -8,9 +8,16 @@ def compute_signature(width, height, key):
 def verify_signature(width, height, key, signature):
     return signature == compute_signature(width, height, key)
 
-def rewrite_image_tags(body, key, app_url=None):
-    root = lxml.html.document_fromstring(body)
-    for img in root.findall('.//img'):
+def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
+    if try_xhtml:
+        try:
+            root = lxml.etree.fromstring(body)
+        except lxml.etree.XMLSyntaxError as e:
+            root = lxml.html.document_fromstring(body)
+    else:
+        root = lxml.html.document_fromstring(body)
+    nsmap = {'x':lxml.html.XHTML_NAMESPACE}
+    for img in root.xpath('.//img|.//x:img', namespaces=nsmap):
         width = img.attrib.get('width')
         height = img.attrib.get('height')
         src = img.attrib.get('src')

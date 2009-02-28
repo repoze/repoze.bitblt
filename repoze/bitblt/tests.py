@@ -15,6 +15,39 @@ class TestProfileMiddleware(unittest.TestCase):
         from repoze.bitblt.processor import ImageTransformationMiddleware
         return ImageTransformationMiddleware(secret='secret', *arg, **kw)
 
+    def test_rewrite_html_ns(self):
+        body = '''\
+        <html xmlns="http://www.w3.org/1999/xhtml"
+              xmlns:esi="http://www.edge-delivery.org/esi/1.0">
+          <body>
+            <img src="foo.png" width="640" height="480" />
+            <esi:include src="somehwere" />
+          </body>
+        </html>'''
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app, try_xhtml=True)
+        result = middleware(request.environ, start_response)
+        width = "640"
+        height = "480"
+        signature = transform.compute_signature(width, height, middleware.secret)
+        directive = "bitblt-%sx%s-%s" % (width, height, signature)
+        body = "".join(result)
+        self.failUnless("%s/foo.png" % directive in body)
+        self.failUnless('<esi:include src="somehwere"' in body)
+        self.assertEqual(response, [
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '318')]])
+
     def test_rewrite_html(self):
         body = '''\
         <html>
