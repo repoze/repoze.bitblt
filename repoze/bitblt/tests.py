@@ -5,7 +5,10 @@ import urllib
 import transform
 
 from StringIO import StringIO
-import Image
+try:
+    import PIL.Image as Image
+except ImportError:
+    import Image
 
 class TestProfileMiddleware(unittest.TestCase):
     def _makeOne(self, *arg, **kw):
@@ -43,7 +46,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless("http://host/%s/bar.png" % directive in "".join(result))
         self.failUnless("http://host/path/%s/hat.png" % directive in "".join(result))
         self.assertEqual(response, [
-            '200 OK', [('content-type', 'text/html; charset=UTF-8'),
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', '368')]])
         
     def test_scaling(self):
@@ -70,7 +73,7 @@ class TestProfileMiddleware(unittest.TestCase):
         result = middleware(request.environ, start_response)
         self.assertEqual(result, [body])
         self.assertEqual(response, [
-            '200 OK', [('content-type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
         
     def test_call_content_type_is_image(self):
         response = []
@@ -156,3 +159,7 @@ sS6g7NCxlihHyQtn8POMG83HvmyhBQUQes5MjpB2kqU6nyKOC8viNwP4cy+gC89yj0FNIhtImW9e
 ulbF1Q075owQxjrpkCoYrho+pYqzDjo8zDQdmF/QIpuxq9RvtVZvTXaNuVLZxLi1It7PXrnD22Ym
 4G1VUFuy5OAl7iYTchAeAFIYvMxQMnt48REo7fHyT/yfuYhAi3MUpgE3YOROQgURMBeXnw4qonMc
 5BMmKXMpVCnOPMgkKcgf/9k=""")
+
+def test_suite():
+    import sys
+    return unittest.findTestCases(sys.modules[__name__])
