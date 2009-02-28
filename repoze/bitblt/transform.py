@@ -8,7 +8,7 @@ def compute_signature(width, height, key):
 def verify_signature(width, height, key, signature):
     return signature == compute_signature(width, height, key)
 
-def rewrite_image_tags(body, key):
+def rewrite_image_tags(body, key, app_url=None):
     root = lxml.html.document_fromstring(body)
     for img in root.findall('.//img'):
         width = img.attrib.get('width')
@@ -17,6 +17,9 @@ def rewrite_image_tags(body, key):
         
         if (width or height) and src:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
+            if app_url is not None and not src.startswith(app_url):
+                if netloc != '':
+                    continue
             signature = compute_signature(width, height, key)
             
             parts = path.split('/')

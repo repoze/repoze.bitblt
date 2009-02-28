@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Added option to limit the url rewriting to urls below the application url.
+  [fschulze]
+
 - Added scaling filter support.
   [fschulze]
 

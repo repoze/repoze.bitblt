@@ -20,7 +20,8 @@ re_bitblt = re.compile(r'bitblt-(?P<width>\d+|None)x(?P<height>\d+|None)-(?P<sig
 
 class ImageTransformationMiddleware(object):
     def __init__(self, app, global_conf=None, quality=80,
-                 secret=None, filter='antialias'):
+                 secret=None, filter='antialias',
+                 limit_to_application_url=False):
         if secret is None:
             raise ValueError("Must configure ``secret``.")
 
@@ -33,6 +34,7 @@ class ImageTransformationMiddleware(object):
             'bicubic': Image.BICUBIC,
             'antialias': Image.ANTIALIAS,
         }.get(filter.lower(), 'antialias')
+        self.limit_to_application_url = limit_to_application_url
 
     def process(self, data, size):
         image = Image.open(data)
@@ -65,7 +67,12 @@ class ImageTransformationMiddleware(object):
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
-            response.body = rewrite_image_tags(response.body, self.secret)
+            if self.limit_to_application_url:
+                app_url = request.application_url
+            else:
+                app_url = None
+            response.body = rewrite_image_tags(response.body, self.secret,
+                                               app_url=app_url)
         
         if response.content_type and response.content_type.startswith('image/'):
             if verified and (width or height):

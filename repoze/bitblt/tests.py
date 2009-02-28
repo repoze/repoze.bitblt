@@ -57,6 +57,48 @@ class TestProfileMiddleware(unittest.TestCase):
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', '478')]])
         
+    def test_rewrite_html_limited_to_application_url(self):
+        body = '''\
+        <html>
+          <body>
+            <img src="foo.png" width="640" height="480" />
+            <img src="http://host/bar.png" width="640" height="480" />
+            <img src="http://host/path/hat.png" width="640" height="480" />
+            <img src="blubb.png" />
+            <img src="blah.png" width="640" />
+          </body>
+        </html>'''
+
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app, limit_to_application_url=True)
+        result = middleware(request.environ, start_response)
+        width = "640"
+        height = "480"
+        signature = transform.compute_signature(width, height, middleware.secret)
+        directive = "bitblt-%sx%s-%s" % (width, height, signature)
+        body = "".join(result)
+        self.failUnless("%s/foo.png" % directive in body)
+        self.failUnless("http://host/bar.png" in body)
+        self.failUnless("http://host/path/hat.png" in body)
+        self.failUnless('<img src="blubb.png">' in body)
+        height = None
+        signature = transform.compute_signature(width, height, middleware.secret)
+        directive = "bitblt-%sx%s-%s" % (width, height, signature)
+        self.failUnless("%s/blah.png" % directive in body)
+        self.assertEqual(response, [
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '366')]])
+        
     def test_scaling(self):
         middleware = self._makeOne(None)
         f = middleware.process(StringIO(jpeg_image_data), (32, 32))

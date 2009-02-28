@@ -16,6 +16,10 @@ If you want to change the compression level for JPEG images, then you can set
 the ``quality`` option to a value between 1 (worst) and 95 (best). The default
 is 80.
 
+By default all image URLs are rewritten. With ``limit_to_application_url``
+you can limit the rewriting to relative URLs and absolute URLs below the
+application URL.
+
 Usage
 -----
 
@@ -45,8 +49,7 @@ signing all URLs with an SHA digest signature.
 Credits
 -------
 
-Malthe Borch <mborch@gmail.com>
-Stefan Eletzhofer <stefan.eletzhofer@inquant.de>
-Jeroen Vloothuis <jeroen.vloothuis@xs4all.nl>
-
-
+* Malthe Borch <mborch@gmail.com>
+* Stefan Eletzhofer <stefan.eletzhofer@inquant.de>
+* Jeroen Vloothuis <jeroen.vloothuis@xs4all.nl>
+* Florian Schulze <florian.schulze@gmx.net>
