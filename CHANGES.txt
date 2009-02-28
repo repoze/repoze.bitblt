@@ -4,6 +4,12 @@ Changelog
 Head
 ~~~~
 
+- Fix importing of PIL. The old way assumed the broken egg installation.
+  [fschulze]
+
+- Made tests run.
+  [fschulze]
+
 0.6 (released 2008-10-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
