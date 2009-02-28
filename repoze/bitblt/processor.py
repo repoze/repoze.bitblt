@@ -49,7 +49,7 @@ class ImageTransformationMiddleware(object):
             # remove bitblt part in path info
             request.path_info = re_bitblt.sub("", request.path_info)
         else:
-            width = height = None
+            verified = width = height = None
             
         response = request.get_response(self.app)
 

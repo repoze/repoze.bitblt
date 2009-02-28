@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Fix UnboundLocalError for respones with untransformed image.
+  [fschulze]
+
 - Fix importing of PIL. The old way assumed the broken egg installation.
   [fschulze]
 

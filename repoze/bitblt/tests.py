@@ -102,7 +102,29 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], '1067')
-        
+
+    def test_call_is_untransformed_image(self):
+        response = []
+
+        def mock_start_response(status, headers, exc_info=None):
+            response.extend((status, headers))
+
+        def mock_app(environ, start_response):
+            self.failIf('bitblt' in environ.get('PATH_INFO'))
+            response = webob.Response(jpeg_image_data, content_type='image/jpeg')
+            response(environ, start_response)
+            return (response.body,)
+
+        middleware = self._makeOne(mock_app)
+        request = webob.Request.blank('foo.jpg')
+
+        result = middleware(request.environ, mock_start_response)
+        status, headers = response
+        headers = webob.HeaderDict(headers)
+        self.assertEqual(status, '200 OK')
+        self.assertEqual(headers['content-type'], 'image/jpeg')
+        self.assertEqual(headers['content-length'], str(len(jpeg_image_data)))
+
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
 IFhZWiAH1gAFABcADwALAAthY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAA
