@@ -23,6 +23,10 @@ In the case it finds such an image element, it rewrites the URL to
 include scaling information which the middleware will read when the
 image is served through it.
 
+The image will be proportionally scaled, so it fits into the given size. If
+you only set one of width or height, then the image will only be limited to
+that, but still proportionally scaled.
+
 This effectively means that application developers needn't worry about
 image scaling; simply put the desired size in the HTML document.
 

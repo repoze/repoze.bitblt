@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Support image tags with only one of the width or height attributes set.
+  [fschulze]
+
 - Fix UnboundLocalError for respones with untransformed image.
   [fschulze]
 

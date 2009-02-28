@@ -15,7 +15,7 @@ def rewrite_image_tags(body, key):
         height = img.attrib.get('height')
         src = img.attrib.get('src')
         
-        if width and height and src:
+        if (width or height) and src:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
             signature = compute_signature(width, height, key)
             

@@ -16,7 +16,7 @@ from cStringIO import StringIO
 from transform import rewrite_image_tags
 from transform import verify_signature
 
-re_bitblt = re.compile(r'bitblt-(?P<width>\d+)x(?P<height>\d+)-(?P<signature>[a-z0-9]+)/')
+re_bitblt = re.compile(r'bitblt-(?P<width>\d+|None)x(?P<height>\d+|None)-(?P<signature>[a-z0-9]+)/')
 
 class ImageTransformationMiddleware(object):
     def __init__(self, app, global_conf=None, quality=80, secret=None):
@@ -26,10 +26,14 @@ class ImageTransformationMiddleware(object):
         self.quality = quality
         self.app = app
         self.secret = secret
-        
+
     def process(self, data, size):
         image = Image.open(data)
         if size != image.size:
+            if size[0] is None:
+                size = (image.size[0], size[1])
+            elif size[1] is None:
+                size = (size[0], image.size[1])
             image.thumbnail(size)
 
         f = StringIO()
@@ -57,9 +61,17 @@ class ImageTransformationMiddleware(object):
             response.body = rewrite_image_tags(response.body, self.secret)
         
         if response.content_type and response.content_type.startswith('image/'):
-            if verified and width and height:
+            if verified and (width or height):
                 try:
-                    size = (int(width), int(height))
+                    if width == 'None':
+                        width = None
+                    else:
+                        width = int(width)
+                    if height == 'None':
+                        height = None
+                    else:
+                        height = int(height)
+                    size = (width, height)
                 except (ValueError, TypeError):
                     raise ValueError(
                         "Width and height parameters must be integers.")

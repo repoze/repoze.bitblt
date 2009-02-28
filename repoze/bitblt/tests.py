@@ -22,6 +22,8 @@ class TestProfileMiddleware(unittest.TestCase):
             <img src="foo.png" width="640" height="480" />
             <img src="http://host/bar.png" width="640" height="480" />
             <img src="http://host/path/hat.png" width="640" height="480" />
+            <img src="blubb.png" />
+            <img src="blah.png" width="640" />
           </body>
         </html>'''
 
@@ -42,17 +44,28 @@ class TestProfileMiddleware(unittest.TestCase):
         height = "480"
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
-        self.failUnless("%s/foo.png" % directive in "".join(result))
-        self.failUnless("http://host/%s/bar.png" % directive in "".join(result))
-        self.failUnless("http://host/path/%s/hat.png" % directive in "".join(result))
+        body = "".join(result)
+        self.failUnless("%s/foo.png" % directive in body)
+        self.failUnless("http://host/%s/bar.png" % directive in body)
+        self.failUnless("http://host/path/%s/hat.png" % directive in body)
+        self.failUnless('<img src="blubb.png">' in body)
+        height = None
+        signature = transform.compute_signature(width, height, middleware.secret)
+        directive = "bitblt-%sx%s-%s" % (width, height, signature)
+        self.failUnless("%s/blah.png" % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '368')]])
+                       ('Content-Length', '478')]])
         
     def test_scaling(self):
         middleware = self._makeOne(None)
-        f = middleware.process(
-            StringIO(jpeg_image_data), (32, 32))
+        f = middleware.process(StringIO(jpeg_image_data), (32, 32))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.size, (32, 32))
+        f = middleware.process(StringIO(jpeg_image_data), (32, None))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.size, (32, 32))
+        f = middleware.process(StringIO(jpeg_image_data), (None, 32))
         image = Image.open(StringIO(f))
         self.assertEqual(image.size, (32, 32))
 
