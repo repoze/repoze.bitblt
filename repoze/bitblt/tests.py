@@ -46,7 +46,38 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless('<esi:include src="somehwere"' in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '318')]])
+                       ('Content-Length', '300')]])
+
+    def test_proper_singletons_with_xhtml(self):
+        body = '''\
+        <html>
+          <body>
+            <img src="foo.png" />
+            <br/>
+          </body>
+        </html>'''
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app, try_xhtml=True)
+        result = middleware(request.environ, start_response)
+        body = "".join(result)
+        self.failUnless('<img src="foo.png"/>' in body)
+        self.failIf('</img>' in body)
+        self.failUnless('<br/>' in body)
+        self.failIf('<br>' in body)
+        self.failIf('</br>' in body)
+        self.assertEqual(response, [
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '108')]])
 
     def test_rewrite_html(self):
         body = '''\

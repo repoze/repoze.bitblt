@@ -9,9 +9,11 @@ def verify_signature(width, height, key, signature):
     return signature == compute_signature(width, height, key)
 
 def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
+    isxml = False
     if try_xhtml:
         try:
             root = lxml.etree.fromstring(body)
+            isxml = True
         except lxml.etree.XMLSyntaxError as e:
             root = lxml.html.document_fromstring(body)
     else:
@@ -37,6 +39,8 @@ def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
             img.attrib['src'] = urlparse.urlunparse(
                 (scheme, netloc, path, params, query, fragment))
 
+    if isxml:
+        return lxml.etree.tostring(root)
     return lxml.html.tostring(root)
                               
 
