@@ -48,12 +48,14 @@ class TestProfileMiddleware(unittest.TestCase):
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', '300')]])
 
-    def test_proper_singletons_with_xhtml(self):
+    def test_proper_xhtml_handling(self):
         body = '''\
-        <html>
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
           <body>
             <img src="foo.png" />
             <br/>
+            <span>&nbsp;</span>
           </body>
         </html>'''
         request = webob.Request.blank("")
@@ -70,14 +72,15 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(mock_app, try_xhtml=True)
         result = middleware(request.environ, start_response)
         body = "".join(result)
-        self.failUnless('<img src="foo.png"/>' in body)
+        self.failUnless('<img src="foo.png" />' in body)
         self.failIf('</img>' in body)
-        self.failUnless('<br/>' in body)
+        self.failUnless('<br />' in body)
         self.failIf('<br>' in body)
         self.failIf('</br>' in body)
+        self.failUnless('<span>&nbsp;</span>' in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '108')]])
+                       ('Content-Length', '179')]])
 
     def test_rewrite_html(self):
         body = '''\

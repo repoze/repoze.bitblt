@@ -22,7 +22,8 @@ application URL.
 
 If you want to use namespaces for tags in your content, then you need to
 specify ``try_xhtml`` which uses an XML parser for the content and preserves
-namespaces. This is useful if you use esi:include for example.
+namespaces. This is useful if you use esi:include for example. Your content
+needs to be well formed for this to work, that includes a proper doctype etc.
 
 Usage
 -----
