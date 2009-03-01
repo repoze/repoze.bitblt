@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Handle empty content bodies, which can occure for redirects.
+  [fschulze]
+
 - Added support for xhtml, which allows the inclusion of namespace tags.
   [fschulze]
 

@@ -69,6 +69,8 @@ class ImageTransformationMiddleware(object):
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
+            if not len(response.body):
+                return response(environ, start_response)
             if self.limit_to_application_url:
                 app_url = request.application_url
             else:

@@ -247,6 +247,22 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], str(len(jpeg_image_data)))
 
+    def test_empty_body(self):
+        # empty bodies can occure in redirects
+        request = webob.Request.blank("")
+
+        def mock_app(environ, start_response):
+            response = webob.Response('', content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app)
+        result = middleware(request.environ, start_response)
+
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
 IFhZWiAH1gAFABcADwALAAthY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAA
