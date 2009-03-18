@@ -15,7 +15,7 @@ def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
             parser = lxml.html.XHTMLParser(resolve_entities=False)
             root = lxml.html.document_fromstring(body, parser=parser)
             isxml = True
-        except lxml.etree.XMLSyntaxError as e:
+        except lxml.etree.XMLSyntaxError, e:
             root = lxml.html.document_fromstring(body)
     else:
         root = lxml.html.document_fromstring(body)

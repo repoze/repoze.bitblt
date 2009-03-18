@@ -4,6 +4,9 @@ Changelog
 Head
 ~~~~
 
+- Don't use python 2.6 syntax.
+  [seletz]
+
 - Handle empty content bodies, which can occure for redirects.
   [fschulze]
 
