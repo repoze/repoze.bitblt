@@ -1,10 +1,9 @@
 Changelog
 ---------
 
-Head
-~~~~
+In next release...
 
-- no changes yet
+- Compatibility with Python 2.4. [malthe]
 
 0.7 (released 2009-03-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~

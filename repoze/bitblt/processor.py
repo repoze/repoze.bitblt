@@ -1,8 +1,6 @@
 """ Middleware that transforms images."""
 
-import os
 import re
-import hashlib
 import webob
 
 try:
@@ -65,7 +63,7 @@ class ImageTransformationMiddleware(object):
             request.path_info = re_bitblt.sub("", request.path_info)
         else:
             verified = width = height = None
-            
+
         response = request.get_response(self.app)
 
         if response.content_type and response.content_type.startswith('text/html'):
@@ -78,7 +76,7 @@ class ImageTransformationMiddleware(object):
             response.body = rewrite_image_tags(response.body, self.secret,
                                                app_url=app_url,
                                                try_xhtml=self.try_xhtml)
-        
+
         if response.content_type and response.content_type.startswith('image/'):
             if verified and (width or height):
                 try:
@@ -101,7 +99,7 @@ class ImageTransformationMiddleware(object):
 
                 body = self.process(app_iter, size)
                 response.body = body
-            
+
         return response(environ, start_response)
 
 def make_bitblt_middleware(app, global_conf, **kwargs):
