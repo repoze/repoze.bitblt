@@ -3,6 +3,9 @@ Changelog
 
 In next release...
 
+- Fixed bug where the quality-parameter would not be coerced to
+  integer, required by PIL. [damien]
+
 - Compatibility with Python 2.4. [malthe]
 
 0.7 (released 2009-03-18)

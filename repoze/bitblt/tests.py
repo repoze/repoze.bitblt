@@ -263,6 +263,12 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, start_response)
 
+    def test_quality(self):
+        ## Mimic Paste Deploy's behaviour, which pass parameters as
+        ## strings
+        middleware = self._makeOne(None, quality='10')
+        f = middleware.process(StringIO(jpeg_image_data), (32, 32))
+
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
 IFhZWiAH1gAFABcADwALAAthY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAA

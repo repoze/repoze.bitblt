@@ -24,7 +24,7 @@ class ImageTransformationMiddleware(object):
         if secret is None:
             raise ValueError("Must configure ``secret``.")
 
-        self.quality = quality
+        self.quality = int(quality)
         self.app = app
         self.secret = secret
         self.filter = {
