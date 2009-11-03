@@ -87,6 +87,7 @@ class TestProfileMiddleware(unittest.TestCase):
         <html>
           <body>
             <img src="foo.png" width="640" height="480" />
+            <img src="/foo.png" width="640" height="480" />
             <img src="http://host/bar.png" width="640" height="480" />
             <img src="http://host/path/hat.png" width="640" height="480" />
             <img src="blubb.png" />
@@ -113,6 +114,7 @@ class TestProfileMiddleware(unittest.TestCase):
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         body = "".join(result)
         self.failUnless("%s/foo.png" % directive in body)
+        self.failUnless("/%s/foo.png" % directive in body)
         self.failUnless("http://host/%s/bar.png" % directive in body)
         self.failUnless("http://host/path/%s/hat.png" % directive in body)
         self.failUnless('<img src="blubb.png">' in body)
@@ -122,7 +124,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless("%s/blah.png" % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '478')]])
+                       ('Content-Length', '579')]])
         
     def test_rewrite_html_limited_to_application_url(self):
         body = '''\

@@ -3,6 +3,9 @@ Changelog
 
 In next release...
 
+- Fixed bug where the leading slash of an absolute URL without the
+  FQDN would be wrongly removed. [damien]
+
 - Fixed bug where the quality-parameter would not be coerced to
   integer, required by PIL. [damien]
 
