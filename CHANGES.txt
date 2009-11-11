@@ -3,6 +3,9 @@ Changelog
 
 In next release...
 
+- Use ``unicode_body`` all over to ensure correct
+  encoding. [sutherland]
+
 - Fixed bug where the leading slash of an absolute URL without the
   FQDN would be wrongly removed. [damien]
 

@@ -66,16 +66,20 @@ class ImageTransformationMiddleware(object):
 
         response = request.get_response(self.app)
 
-        if response.content_type and response.content_type.startswith('text/html'):
+        if response.content_type and \
+               response.content_type.startswith('text/html') and \
+               response.charset:
             if not len(response.body):
                 return response(environ, start_response)
             if self.limit_to_application_url:
                 app_url = request.application_url
             else:
                 app_url = None
-            response.body = rewrite_image_tags(response.body, self.secret,
-                                               app_url=app_url,
-                                               try_xhtml=self.try_xhtml)
+
+            response.unicode_body = rewrite_image_tags(
+                response.unicode_body, self.secret,
+                app_url=app_url,
+                try_xhtml=self.try_xhtml)
 
         if response.content_type and response.content_type.startswith('image/'):
             if verified and (width or height):

@@ -265,6 +265,34 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(mock_app)
         result = middleware(request.environ, start_response)
 
+    def test_encoding(self):
+        body = '''\
+        <html>
+          <body>
+            <img src="foo.png" width="640" height="480" />
+            <p>UTF-8 encoded chinese: \xe6\xb1\x89\xe8\xaf\xad\xe6\xbc\xa2\xe8\xaa\x9e</p> 
+          </body>
+        </html>'''
+
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html', charset='UTF-8')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app)
+        result = middleware(request.environ, start_response)
+        body = "".join(result)
+        self.failUnless("UTF-8 encoded chinese: \xe6\xb1\x89\xe8\xaf\xad\xe6\xbc\xa2\xe8\xaa\x9e" in body, body)
+        self.assertEqual(response, [
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '193')]])
+
     def test_quality(self):
         ## Mimic Paste Deploy's behaviour, which pass parameters as
         ## strings

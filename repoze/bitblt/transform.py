@@ -45,5 +45,5 @@ def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
                 (scheme, netloc, path, params, query, fragment))
 
     if isxml:
-        return lxml.etree.tostring(root)
-    return lxml.html.tostring(root)
+        return lxml.etree.tostring(root, encoding=unicode)
+    return lxml.html.tostring(root, encoding=unicode)
