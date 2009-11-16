@@ -3,8 +3,12 @@ Changelog
 
 In next release...
 
+- Don't rewrite <img> tags with percentage sizes, only the browser knows
+  how big the images should be. See http://www.w3.org/TR/html4/types.html#h-6.6.
+  [jinty]
+
 - Use ``unicode_body`` all over to ensure correct
-  encoding. [sutherland]
+  encoding. [jinty]
 
 - Fixed bug where the leading slash of an absolute URL without the
   FQDN would be wrongly removed. [damien]

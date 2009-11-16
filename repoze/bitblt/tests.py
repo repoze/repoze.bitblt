@@ -92,6 +92,14 @@ class TestProfileMiddleware(unittest.TestCase):
             <img src="http://host/path/hat.png" width="640" height="480" />
             <img src="blubb.png" />
             <img src="blah.png" width="640" />
+
+            Images with % sizes should not be rewritten, only the browser knows
+            how big the images should be. They are based on available space, not
+            original image dimensions.
+            See http://www.w3.org/TR/html4/types.html#h-6.6.
+                <img src="percentage.png" width="100%" />
+                <img src="percentage.png" width="50%" height="50%"/>
+                <img src="percentage.png" height="20%" />
           </body>
         </html>'''
 
@@ -117,14 +125,17 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless("/%s/foo.png" % directive in body)
         self.failUnless("http://host/%s/bar.png" % directive in body)
         self.failUnless("http://host/path/%s/hat.png" % directive in body)
-        self.failUnless('<img src="blubb.png">' in body)
+        self.failUnless('src="blubb.png">' in body)
+        self.failUnless('src="percentage.png" width="100%"' in body)
+        self.failUnless('src="percentage.png" width="50%" height="50%"' in body)
+        self.failUnless('src="percentage.png" height="20%"' in body)
         height = None
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         self.failUnless("%s/blah.png" % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '579')]])
+                       ('Content-Length', '987')]])
         
     def test_rewrite_html_limited_to_application_url(self):
         body = '''\
