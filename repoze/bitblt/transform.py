@@ -34,6 +34,10 @@ def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
             if app_url is not None and not src.startswith(app_url):
                 if netloc != '':
                     continue
+            if height and height.endswith('px'):
+                height = height[:-2]
+            if width and width.endswith('px'):
+                width = width[:-2]
             if (height and not height.isdigit()) or (width and not width.isdigit()):
                 continue
             signature = compute_signature(width, height, key)

@@ -3,6 +3,10 @@ Changelog
 
 In next release...
 
+- Properly rewrite <img> tags with pixel (e.g. height="100px") attributes,
+  previously the url generated missed the regex resulting in broken images.
+  [jinty]
+
 - Don't rewrite <img> tags with percentage sizes, only the browser knows
   how big the images should be. See http://www.w3.org/TR/html4/types.html#h-6.6.
   [jinty]

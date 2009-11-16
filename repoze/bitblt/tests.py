@@ -100,6 +100,10 @@ class TestProfileMiddleware(unittest.TestCase):
                 <img src="percentage.png" width="100%" />
                 <img src="percentage.png" width="50%" height="50%"/>
                 <img src="percentage.png" height="20%" />
+            
+            Image tags with px are used in the real world, we should rewrite them:
+                <img src="pixels.png" width="640px" height="480px"/>
+                <img src="pixels.png" width="640px" />
           </body>
         </html>'''
 
@@ -129,13 +133,15 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless('src="percentage.png" width="100%"' in body)
         self.failUnless('src="percentage.png" width="50%" height="50%"' in body)
         self.failUnless('src="percentage.png" height="20%"' in body)
+        self.failUnless('src="%s/pixels.png" width="640px" height="480px"' % directive in body)
         height = None
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         self.failUnless("%s/blah.png" % directive in body)
+        self.failUnless('src="%s/pixels.png" width="640px"' % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '987')]])
+                       ('Content-Length', '1300')]])
         
     def test_rewrite_html_limited_to_application_url(self):
         body = '''\
