@@ -3,6 +3,10 @@ Changelog
 
 In next release...
 
+- Fix bug where <![CDATA[ escaped sections would be quoted and the CDATA
+  stripped. This causes foulups when quoting Javascript.
+  [jinty]
+
 - Properly rewrite <img> tags with pixel (e.g. height="100px") attributes,
   previously the url generated missed the regex resulting in broken images.
   [jinty]

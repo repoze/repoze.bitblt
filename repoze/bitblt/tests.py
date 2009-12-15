@@ -316,6 +316,43 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(None, quality='10')
         f = middleware.process(StringIO(jpeg_image_data), (32, 32))
 
+    def test_javascript_cdata(self):
+        """Test that CDATA escaped javascript arrives unmolested when processing as XHTML."""
+        body = '''\
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
+          <head>
+            <script type="text/javascript">
+              <![CDATA[
+              x = '<&>'
+              ]]>
+            </script>
+          </head>
+          <body>
+            <img src="foo.png" width="640" height="480" />
+          </body>
+        </html>'''
+
+        request = webob.Request.blank("")
+        
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/html')
+            response(environ, start_response)
+            return (response.body,)
+            
+        response = []
+        def start_response(*args):
+            response.extend(args)
+
+        middleware = self._makeOne(mock_app, try_xhtml=True)
+        result = middleware(request.environ, start_response)
+        result = "".join(result)
+        self.failUnless("<![CDATA[" in result, result)
+        self.failUnless("x = '<&>'" in result, result)
+        self.assertEqual(response, [
+            '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
+                       ('Content-Length', '445')]])
+            
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
 IFhZWiAH1gAFABcADwALAAthY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAA
