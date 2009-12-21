@@ -38,6 +38,12 @@ class ImageTransformationMiddleware(object):
 
     def process(self, data, size):
         image = Image.open(data)
+
+        kw = {'quality': self.quality}
+        transparency = image.info.get('transparency', None)
+        if transparency is not None:
+            kw['transparency'] = transparency
+
         if size != image.size:
             if size[0] is None:
                 size = (image.size[0], size[1])
@@ -46,7 +52,7 @@ class ImageTransformationMiddleware(object):
             image.thumbnail(size, self.filter)
 
         f = StringIO()
-        image.save(f, image.format.upper(), quality=self.quality)
+        image.save(f, image.format.upper(), **kw)
         return f.getvalue()
 
     def __call__(self, environ, start_response):

@@ -197,6 +197,19 @@ class TestProfileMiddleware(unittest.TestCase):
         image = Image.open(StringIO(f))
         self.assertEqual(image.size, (32, 32))
 
+    def test_keep_gif_transparency(self):
+        middleware = self._makeOne(None)
+        # resize non-transparent gif
+        f = middleware.process(StringIO(gif_image_data), (32, 32))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.size, (32, 32))
+        self.assertEqual(image.info.get('transparency'), None)
+        # resize transparent gif
+        f = middleware.process(StringIO(transparent_gif_image_data), (32, 32))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.size, (32, 32))
+        self.assertEqual(image.info.get('transparency'), 156)
+
     def test_call_content_type_not_image(self):
         body = "<html><body>Hello, world!</body></html>"
         request = webob.Request.blank("")
@@ -409,6 +422,74 @@ sS6g7NCxlihHyQtn8POMG83HvmyhBQUQes5MjpB2kqU6nyKOC8viNwP4cy+gC89yj0FNIhtImW9e
 ulbF1Q075owQxjrpkCoYrho+pYqzDjo8zDQdmF/QIpuxq9RvtVZvTXaNuVLZxLi1It7PXrnD22Ym
 4G1VUFuy5OAl7iYTchAeAFIYvMxQMnt48REo7fHyT/yfuYhAi3MUpgE3YOROQgURMBeXnw4qonMc
 5BMmKXMpVCnOPMgkKcgf/9k=""")
+
+gif_image_data = base64.decodestring("""\
+R0lGODdhMAAwAIcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMAAGYAAJkAAMwA
+AP8AAAAzADMzAGYzAJkzAMwzAP8zAABmADNmAGZmAJlmAMxmAP9mAACZADOZAGaZAJmZAMyZAP+Z
+AADMADPMAGbMAJnMAMzMAP/MAAD/ADP/AGb/AJn/AMz/AP//AAAAMzMAM2YAM5kAM8wAM/8AMwAz
+MzMzM2YzM5kzM8wzM/8zMwBmMzNmM2ZmM5lmM8xmM/9mMwCZMzOZM2aZM5mZM8yZM/+ZMwDMMzPM
+M2bMM5nMM8zMM//MMwD/MzP/M2b/M5n/M8z/M///MwAAZjMAZmYAZpkAZswAZv8AZgAzZjMzZmYz
+ZpkzZswzZv8zZgBmZjNmZmZmZplmZsxmZv9mZgCZZjOZZmaZZpmZZsyZZv+ZZgDMZjPMZmbMZpnM
+ZszMZv/MZgD/ZjP/Zmb/Zpn/Zsz/Zv//ZgAAmTMAmWYAmZkAmcwAmf8AmQAzmTMzmWYzmZkzmcwz
+mf8zmQBmmTNmmWZmmZlmmcxmmf9mmQCZmTOZmWaZmZmZmcyZmf+ZmQDMmTPMmWbMmZnMmczMmf/M
+mQD/mTP/mWb/mZn/mcz/mf//mQAAzDMAzGYAzJkAzMwAzP8AzAAzzDMzzGYzzJkzzMwzzP8zzABm
+zDNmzGZmzJlmzMxmzP9mzACZzDOZzGaZzJmZzMyZzP+ZzADMzDPMzGbMzJnMzMzMzP/MzAD/zDP/
+zGb/zJn/zMz/zP//zAAA/zMA/2YA/5kA/8wA//8A/wAz/zMz/2Yz/5kz/8wz//8z/wBm/zNm/2Zm
+/5lm/8xm//9m/wCZ/zOZ/2aZ/5mZ/8yZ//+Z/wDM/zPM/2bM/5nM/8zM///M/wD//zP//2b//5n/
+/8z//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAMAAwAEAI/wDDCRxI
+sKDBgwgTKkwIBoDDhxAjLgpHsaLFixUJAQAQrqNHACBthRvZK1y4bV8AqFzJsqXKcDBjyowJoKbN
+mwAWbetlCwyAnwBcABhKtGjRWuGSKl3KNByAp1CjSp1KdaqtcFizat3KVautRWAAiB1LtqxZseHS
+ql3Llm0vMADiAnABJpzdu3jz6s27CAwAADXAhNMGoLDhw4gLuwDAOJzjx5Ajh+sFAACYcOEAaNZs
+K9wiAKBBhwsHBoDp06hTmwYTrrXr12AAyJ4NYAGA27hzA4AAoLfv38ABLApHvLjx44sAKF/OvLnz
+589thZtOvbr169Z7hdsWzhaA7+DDi///viCc+fPo06tfz769+/c1AMifTx/AmXD48+vfz79/foC9
+AAwkWNBgwXAJFS5kqBAMAAALFi0CA8DiRQBgNALg2NHjR1vhRI4kSbIGADDhVIZbBMDlonC2AMwE
+4CJcODAAdO7k2VNnOKBBhYYDA8Do0aPhlC4CsyhcuEUApE6lWnWqrXBZtWq1BcDrV7BhxY4lCybc
+WbRp0W4LBwbAW7hx5c6lK9dWOLx59eoF0NfvX8CBBQu2Fc7wYcSIbdUA0NjxY8iRJUMGE87yZcyZ
+NW8G0NnzZ9CdIQAAEM70adSpVYfrFc7163CLAMymXdv27HC5de/m3dv3b+DBhffuFc7/+HHkyZUv
+Z66cEADo0aMvClfd+nXs2bVrrwHA+3fw38GEI1/e/Hn06csvAtDe/Xv47cPNp1/f/n384WoA4N/f
+P0AAAgcOXBTuIMKEChGCAeDwYY0aACZSrGjxIphwGjdy7NgLAAAw4UaG6wXgJIBF4VauBAPgJcyY
+MMGAAQAmHM6cOsOBAQAmHFCgYAAAABMu3CIAAFz0ChcOANSoUqdCrRHuKlasYAAACOcVHICwALaF
+AwPg7Nle4cAAaOv2Ldy2i8LRrVsXDAAANWoA6Nt3UbhwEAAQXhQuHIDEihczVrwoHOTIksMtAmD5
+suUa4TZztgXgM+jQoj8vABDuNOrU3uHAAGjt+jVs1y4A0K5t+zaAcLp38w63CADw4MKHC18A4Djy
+5MqPh2vu/HnzXmAAUK9u/Tr27NhrhOvu/Tt4MADGky9v/jz68jXCsW/v3j2A+PLn069vvz6YcPr3
+899fAyAAgQMJFjR40GCNcAsZNmS4CEBEiRMpVrRoMVxGjRs5hlsEpgYEFwBIljR5EmXKcCtZtnT5
+0iUYADNp1rR5M1xOnTt59uQJLly4GgCIFjV6tGg4pUuZNnXKdFs4qeFqALB6FWtWq+G4dvX6FWxX
+cOHIkl0EAO0CAGvZtmUbEAA7""")
+
+transparent_gif_image_data = base64.decodestring("""\
+R0lGODdhMAAwAIcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADMAAGYAAJkAAMwA
+AP8AAAAzADMzAGYzAJkzAMwzAP8zAABmADNmAGZmAJlmAMxmAP9mAACZADOZAGaZAJmZAMyZAP+Z
+AADMADPMAGbMAJnMAMzMAP/MAAD/ADP/AGb/AJn/AMz/AP//AAAAMzMAM2YAM5kAM8wAM/8AMwAz
+MzMzM2YzM5kzM8wzM/8zMwBmMzNmM2ZmM5lmM8xmM/9mMwCZMzOZM2aZM5mZM8yZM/+ZMwDMMzPM
+M2bMM5nMM8zMM//MMwD/MzP/M2b/M5n/M8z/M///MwAAZjMAZmYAZpkAZswAZv8AZgAzZjMzZmYz
+ZpkzZswzZv8zZgBmZjNmZmZmZplmZsxmZv9mZgCZZjOZZmaZZpmZZsyZZv+ZZgDMZjPMZmbMZpnM
+ZszMZv/MZgD/ZjP/Zmb/Zpn/Zsz/Zv//ZgAAmTMAmWYAmZkAmcwAmf8AmQAzmTMzmWYzmZkzmcwz
+mf8zmQBmmTNmmWZmmZlmmcxmmf9mmQCZmTOZmWaZmZmZmcyZmf+ZmQDMmTPMmWbMmZnMmczMmf/M
+mQD/mTP/mWb/mZn/mcz/mf//mQAAzDMAzGYAzJkAzMwAzP8AzAAzzDMzzGYzzJkzzMwzzP8zzABm
+zDNmzGZmzJlmzMxmzP9mzACZzDOZzGaZzJmZzMyZzP+ZzADMzDPMzGbMzJnMzMzMzP/MzAD/zDP/
+zGb/zJn/zMz/zP//zAAA/zMA/2YA/5kA/8wA//8A/wAz/zMz/2Yz/5kz/8wz//8z/wBm/zNm/2Zm
+/5lm/8xm//9m/wCZ/zOZ/2aZ/5mZ/8yZ//+Z/wDM/zPM/2bM/5nM/8zM///M/wD//zP//2b//5n/
+/8z//////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAJwALAAAAAAwADAA
+QAj/AMMJHEiwoMGDCBMqTAgGgMOHECMuCkexosWLFQkBABCuo0cAIG2FG9krXLhtXwCoXMmypcpw
+MGPKjAmgps2bABZt62ULDICfAFwAGEq0aNFa4ZIqXco0HICnUKNKnUp1qq1wWLNq3cpVq61FYACI
+HUu2rFmx4dKqXcuWbS8wAOICcAEmnN27ePPqzbsIDAAANcCE0wagsOHDiAu7AMA4nOPHkCOH6wUA
+AJhw4QBo1mwr3CIAoEGHCwcGgOnTqFObBhOutevXYADIng1gAYDbuHMDgACgt+/fwAEsCke8uPHj
+iwAoX868ufPnz22Fm069uvXr1nuF2xbOFoDv4MOL//++IJz58+jTq1/Pvr379zUAyJ9PH8CZcPjz
+69/Pv39+gL0ADCRY0GDBcAkVLmSoEAwAAAsWLQIDwOJFAGA0AuDY0eNHW+FEjiRJsgYAMOFUhlsE
+wOWicLYAzATgIlw4MAB07uTZU2c4oEGFhgMDwOjRo+GULgKzKFy4RQCkTqVadaqtcFm1arUFwOtX
+sGHFjiULJtxZtGnRbgsHBsBbuHHlzqUr11Y4vHn16gXQ1+9fwIEFC7YVzvBhxIht1QDQ2PFjyJEl
+QwYTzvJlzJk1bwbQ2fNn0J0hAAAQzvRp1KlVh+sVzvXrcIsAzKZd2/bscLl17+bd2/dv4MGF9+4V
+zv/4ceTJlS9nrpwQAOjRoy8KV936dezZtWuvAcD7d/DfwYQjX978efTpyy8C0N79e/jtw82nX9/+
+ffzhagDg398/QAACBw5cFO4gwoQKEYIB4PBhjRoAJlKsaPEimHAaN3Ls2AsAADDhRobrBeAkgEXh
+Vq4EA+AlzJgwwYABACYczpw6w4EBACYcUKBgAAAAEy7cIgAAXPQKFw4A1KhSp0KtEe4qVqxgAAAI
+5xUcgLAAtoUDA+Ds2V7hwABo6/Yt3LaLwtGtWxcMAAA1agDo23dRuHAQABBeFC4cgMSKFzNWvCgc
+5MiSwy0CYPmy5RrhNnO2BeAz6NCiPy8AEO406tTe4cAAaO36NWzXLgDQrm37NoBwunfzDrcIAPDg
+wocLXwDgOPLkyo+Ha+78efNeYABQr279Ovbs2GuE6+79O3gwAMaTL2/+PPryNcKxb+/ePYD48ufT
+r2+/Pphw+vfz318DIACBAwkWNHjQYI1wCxk2ZLgIQESJEylWtGgxXEaNGzmGWwSmBgQXAEiWNHkS
+ZcpwK1m2dPnSJRgAM2nWtHkzXE6dO3n25AkuXLgaAIgWNXq0aDilS5k2dcp0Wzip4WoAsHoVa1ar
+4bh29foVbFdw4ciSXQQA7QIAa9m2ZRsQADs=""")
 
 def test_suite():
     import sys

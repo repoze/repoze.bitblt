@@ -3,6 +3,10 @@ Changelog
 
 In next release...
 
+- Make sure resizing preserves GIF transparency.
+  http://bugs.repoze.org/issue115
+  [jinty]
+
 - Fix bug where <![CDATA[ escaped sections would be quoted and the CDATA
   stripped. This causes foulups when quoting Javascript.
   [jinty]
