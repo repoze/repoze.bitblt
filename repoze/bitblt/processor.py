@@ -20,7 +20,7 @@ class ImageTransformationMiddleware(object):
     def __init__(self, app, global_conf=None, quality=80,
                  secret=None, filter='antialias',
                  limit_to_application_url=False,
-                 try_xhtml=False):
+                 try_xhtml=False): # BBB
         if secret is None:
             raise ValueError("Must configure ``secret``.")
 
@@ -34,7 +34,6 @@ class ImageTransformationMiddleware(object):
             'antialias': Image.ANTIALIAS,
         }.get(filter.lower(), 'antialias')
         self.limit_to_application_url = limit_to_application_url
-        self.try_xhtml = try_xhtml
 
     def process(self, data, size):
         image = Image.open(data)
@@ -84,8 +83,7 @@ class ImageTransformationMiddleware(object):
 
             response.unicode_body = rewrite_image_tags(
                 response.unicode_body, self.secret,
-                app_url=app_url,
-                try_xhtml=self.try_xhtml)
+                app_url=app_url)
 
         if response.content_type and response.content_type.startswith('image/'):
             if verified and (width or height):

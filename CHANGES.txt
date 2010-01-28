@@ -3,6 +3,14 @@ Changelog
 
 In next release...
 
+- Re-write rewrite_image_tags to use regular expressions to find/mangle img
+  tags. As well aas removing the dependency on lxml this  prevents a whole
+  class of bugs where lxml was changing the HTML source too much, see
+  http://bugs.repoze.org/issue103. Backwards compatibility for the
+  'ImageTransformationMiddleware' class was preserved by leaving the try_xhtml
+  argument in place. It is now a no-op.
+  [jinty]
+
 - Make sure resizing preserves GIF transparency.
   http://bugs.repoze.org/issue115
   [jinty]

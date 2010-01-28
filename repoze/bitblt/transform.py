@@ -1,4 +1,5 @@
-import lxml.html
+import re
+from StringIO import StringIO
 import urlparse
 
 try:
@@ -6,50 +7,48 @@ try:
 except ImportError:
     from sha import sha as sha1
 
+re_img = re.compile(r'''<img'''
+                    r'''(?:\s+(?:''' # whitespace at start of tag
+                        r'''src=["']?(?P<src>[^"'\s]*)["']?''' # find src= 
+                        r'''|width=["']?(?P<width>\d*)(?:px)?["']?''' # or find width=
+                        r'''|height=["']?(?P<height>\d*)(?:px)?["']?''' # or find height=
+                        r'''|[\w:]*=(?:'[^']*'|"[^"]*"|[^<>"'\s]*)''' # or match but ignore most other tags
+                    r'''))+\s*/>''') # match whitespace at the end and the end tag
+
 def compute_signature(width, height, key):
     return sha1("%s:%s:%s" % (width, height, key)).hexdigest()
 
 def verify_signature(width, height, key, signature):
     return signature == compute_signature(width, height, key)
 
-def rewrite_image_tags(body, key, app_url=None, try_xhtml=False):
-    isxml = False
-    if try_xhtml:
-        try:
-            parser = lxml.html.XHTMLParser(resolve_entities=False, strip_cdata=False)
-            root = lxml.html.document_fromstring(body, parser=parser)
-            isxml = True
-        except lxml.etree.XMLSyntaxError, e:
-            root = lxml.html.document_fromstring(body)
-    else:
-        root = lxml.html.document_fromstring(body)
-    nsmap = {'x':lxml.html.XHTML_NAMESPACE}
-    for img in root.xpath('.//img|.//x:img', namespaces=nsmap):
-        width = img.attrib.get('width')
-        height = img.attrib.get('height')
-        src = img.attrib.get('src')
-
-        if (width or height) and src:
-            scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
-            if app_url is not None and not src.startswith(app_url):
-                if netloc != '':
-                    continue
-            if height and height.endswith('px'):
-                height = height[:-2]
-            if width and width.endswith('px'):
-                width = width[:-2]
-            if (height and not height.isdigit()) or (width and not width.isdigit()):
+def rewrite_image_tags(body, key, app_url=None):
+    mos =  re_img.finditer(body)
+    index = 0
+    new_body = []
+    for mo in mos:
+        # add section before current match to new body
+        new_body.append(body[index:mo.start()])
+        index = mo.end()
+        # work on <img> tag
+        d = dict(src=None, height=None, width=None)
+        d.update(mo.groupdict())
+        src, height, width = d['src'], d['height'], d['width']
+        new_body.append(body[mo.start():mo.end()])
+        # check conditions in which we should skip this tag
+        if not src or not (width or height):
+            continue
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
+        if app_url is not None and not src.startswith(app_url):
+            if netloc != '':
                 continue
-            signature = compute_signature(width, height, key)
-
-            parts = path.split('/')
-            parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
-
-            path = '/'.join(parts)
-
-            img.attrib['src'] = urlparse.urlunparse(
-                (scheme, netloc, path, params, query, fragment))
-
-    if isxml:
-        return lxml.etree.tostring(root, encoding=unicode)
-    return lxml.html.tostring(root, encoding=unicode)
+        # calculate new src url 
+        signature = compute_signature(width, height, key)
+        parts = path.split('/')
+        parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
+        path = '/'.join(parts)
+        src = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+        # replace last element (which is the unmodified img tag)
+        new_body[-1:] = [body[mo.start():mo.start('src')], src, body[mo.end('src'):mo.end()]]
+    # add section after last match to new body
+    new_body.append(body[index:])
+    return ''.join(new_body)

@@ -46,7 +46,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless('<esi:include src="somehwere"' in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '300')]])
+                       ('Content-Length', str(len(body)))]])
 
     def test_proper_xhtml_handling(self):
         body = '''\
@@ -72,18 +72,19 @@ class TestProfileMiddleware(unittest.TestCase):
         middleware = self._makeOne(mock_app, try_xhtml=True)
         result = middleware(request.environ, start_response)
         body = "".join(result)
+        self.failUnless('<!DOCTYPE' in body)
         self.failUnless('<img src="foo.png" />' in body)
         self.failIf('</img>' in body)
-        self.failUnless('<br />' in body)
+        self.failUnless('<br/>' in body)
         self.failIf('<br>' in body)
         self.failIf('</br>' in body)
         self.failUnless('<span>&nbsp;</span>' in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '179')]])
+                       ('Content-Length', str(len(body)))]])
 
     def test_rewrite_html(self):
-        body = '''\
+        body = '''<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
         <html>
           <body>
             <img src="foo.png" width="640" height="480" />
@@ -125,11 +126,12 @@ class TestProfileMiddleware(unittest.TestCase):
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         body = "".join(result)
+        self.failUnless(body.startswith('<!DOCTYPE'))
         self.failUnless("%s/foo.png" % directive in body)
         self.failUnless("/%s/foo.png" % directive in body)
         self.failUnless("http://host/%s/bar.png" % directive in body)
         self.failUnless("http://host/path/%s/hat.png" % directive in body)
-        self.failUnless('src="blubb.png">' in body)
+        self.failUnless('src="blubb.png" />' in body)
         self.failUnless('src="percentage.png" width="100%"' in body)
         self.failUnless('src="percentage.png" width="50%" height="50%"' in body)
         self.failUnless('src="percentage.png" height="20%"' in body)
@@ -141,7 +143,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless('src="%s/pixels.png" width="640px"' % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '1300')]])
+                       ('Content-Length', str(len(body)))]])
         
     def test_rewrite_html_limited_to_application_url(self):
         body = '''\
@@ -173,17 +175,18 @@ class TestProfileMiddleware(unittest.TestCase):
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         body = "".join(result)
+        self.failUnless('DOCTYPE' not in body, body)
         self.failUnless("%s/foo.png" % directive in body)
         self.failUnless("http://host/bar.png" in body)
         self.failUnless("http://host/path/hat.png" in body)
-        self.failUnless('<img src="blubb.png">' in body)
+        self.failUnless('<img src="blubb.png" />' in body)
         height = None
         signature = transform.compute_signature(width, height, middleware.secret)
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         self.failUnless("%s/blah.png" % directive in body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '366')]])
+                       ('Content-Length', str(len(body)))]])
         
     def test_scaling(self):
         middleware = self._makeOne(None)
@@ -321,7 +324,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless("UTF-8 encoded chinese: \xe6\xb1\x89\xe8\xaf\xad\xe6\xbc\xa2\xe8\xaa\x9e" in body, body)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '193')]])
+                       ('Content-Length', str(len(body)))]])
 
     def test_quality(self):
         ## Mimic Paste Deploy's behaviour, which pass parameters as
@@ -364,7 +367,47 @@ class TestProfileMiddleware(unittest.TestCase):
         self.failUnless("x = '<&>'" in result, result)
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
-                       ('Content-Length', '445')]])
+                       ('Content-Length', str(len(result)))]])
+
+class TestImgRegex(unittest.TestCase):
+
+    def match(self, tag):
+        match = transform.re_img.match(tag)
+        self.assertTrue(match)
+        groups = match.groupdict()
+        src = height = width = None
+        if 'src' in groups:
+            src = groups['src']
+        if 'height' in groups:
+            height = groups['height']
+        if 'width' in groups:
+            width = groups['width']
+        return src, height, width
+        
+    def test_no_match(self):
+        strings = ['<img />',
+                   #'<img src="foo.png" />',
+                   #'<img height="480" />',
+                   #'<img width="640" />',
+                   #'<img width="640" height="480" />',
+                   ]
+        for s in strings:
+            match = transform.re_img.match(s)
+            self.assertTrue(match is None, s)
+
+    def test_matches(self):
+        groups = self.match("<img src='foo.png' width='640' fb:name='bobo' height='480' />")
+        self.assertEquals(groups, ('foo.png', '480', '640'))
+        groups = self.match('<img src="foo.png" width="640" fb:name="bobo" height="480" />')
+        self.assertEquals(groups, ('foo.png', '480', '640'))
+        groups = self.match('<img src="foo.png" width="640px" height="480px" />')
+        self.assertEquals(groups, ('foo.png', '480', '640'))
+    
+    def test_evil_matches(self):
+        # evil stuff we actually find
+        groups = self.match('<img src=foo.png width=640 fb:name=bobo height=480 />')
+        self.assertEquals(groups, ('foo.png', '480', '640'))
+
             
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
