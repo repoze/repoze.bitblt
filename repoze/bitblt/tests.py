@@ -25,12 +25,12 @@ class TestProfileMiddleware(unittest.TestCase):
           </body>
         </html>'''
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -59,12 +59,12 @@ class TestProfileMiddleware(unittest.TestCase):
           </body>
         </html>'''
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -101,7 +101,7 @@ class TestProfileMiddleware(unittest.TestCase):
                 <img src="percentage.png" width="100%" />
                 <img src="percentage.png" width="50%" height="50%"/>
                 <img src="percentage.png" height="20%" />
-            
+
             Image tags with px are used in the real world, we should rewrite them:
                 <img src="pixels.png" width="640px" height="480px"/>
                 <img src="pixels.png" width="640px" />
@@ -109,12 +109,12 @@ class TestProfileMiddleware(unittest.TestCase):
         </html>'''
 
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -144,7 +144,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', str(len(body)))]])
-        
+
     def test_rewrite_html_limited_to_application_url(self):
         body = '''\
         <html>
@@ -158,12 +158,12 @@ class TestProfileMiddleware(unittest.TestCase):
         </html>'''
 
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -187,7 +187,7 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', str(len(body)))]])
-        
+
     def test_scaling(self):
         middleware = self._makeOne(None)
         f = middleware.process(StringIO(jpeg_image_data), (32, 32))
@@ -216,12 +216,12 @@ class TestProfileMiddleware(unittest.TestCase):
     def test_call_content_type_not_image(self):
         body = "<html><body>Hello, world!</body></html>"
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -231,13 +231,13 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(result, [body])
         self.assertEqual(response, [
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'), ('Content-Length', '39')]])
-        
+
     def test_call_content_type_is_image(self):
         response = []
 
         def mock_start_response(status, headers, exc_info=None):
             response.extend((status, headers))
-            
+
         def mock_app(environ, start_response):
             self.failIf('bitblt' in environ.get('PATH_INFO'))
             response = webob.Response(jpeg_image_data, content_type='image/jpeg')
@@ -248,7 +248,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         width = height = "32"
         signature = transform.compute_signature(width, height, middleware.secret)
-        
+
         request = webob.Request.blank('bitblt-%sx%s-%s/foo.jpg' % (
             width, height, signature))
 
@@ -303,17 +303,17 @@ class TestProfileMiddleware(unittest.TestCase):
         <html>
           <body>
             <img src="foo.png" width="640" height="480" />
-            <p>UTF-8 encoded chinese: \xe6\xb1\x89\xe8\xaf\xad\xe6\xbc\xa2\xe8\xaa\x9e</p> 
+            <p>UTF-8 encoded chinese: \xe6\xb1\x89\xe8\xaf\xad\xe6\xbc\xa2\xe8\xaa\x9e</p>
           </body>
         </html>'''
 
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html', charset='UTF-8')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -350,12 +350,12 @@ class TestProfileMiddleware(unittest.TestCase):
         </html>'''
 
         request = webob.Request.blank("")
-        
+
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
             response(environ, start_response)
             return (response.body,)
-            
+
         response = []
         def start_response(*args):
             response.extend(args)
@@ -384,7 +384,7 @@ class TestImgMatch(unittest.TestCase):
             return None
         src, height, width, scheme, netloc, path, params, query, fragment = result
         return src, height, width
-        
+
     def test_no_match(self):
         self.assertMatch('<img />', None)
         self.assertMatch('<img src="foo.png"/>', None)

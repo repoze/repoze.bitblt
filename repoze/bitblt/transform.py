@@ -9,7 +9,7 @@ except ImportError:
 
 re_img = re.compile(r'''<img'''
                     r'''(?:\s+(?:''' # whitespace at start of tag
-                        r'''src=["']?(?P<src>[^"'\s]*)["']?''' # find src= 
+                        r'''src=["']?(?P<src>[^"'\s]*)["']?''' # find src=
                         r'''|width=["']?(?P<width>\d*)(?:px)?["']?''' # or find width=
                         r'''|height=["']?(?P<height>\d*)(?:px)?["']?''' # or find height=
                         r'''|[\w:]*=(?:'[^']*'|"[^"]*"|[^<>"'\s]*)''' # or match but ignore most other tags
@@ -48,7 +48,7 @@ def rewrite_image_tags(body, key, app_url=None):
             new_body.append(body[mo.start():mo.end()])
             continue
         src, height, width, scheme, netloc, path, params, query, fragment = result
-        # calculate new src url 
+        # calculate new src url
         signature = compute_signature(width, height, key)
         parts = path.split('/')
         parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
