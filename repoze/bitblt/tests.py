@@ -369,46 +369,62 @@ class TestProfileMiddleware(unittest.TestCase):
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', str(len(result)))]])
 
-class TestImgRegex(unittest.TestCase):
+class TestImgMatch(unittest.TestCase):
 
-    def match(self, tag):
+    def assertMatch(self, tag, result, app_url=None):
+        r = self.match(tag, app_url=app_url)
+        self.assertEquals(r, result)
+
+    def match(self, tag, app_url=None):
         match = transform.re_img.match(tag)
-        self.assertTrue(match)
-        groups = match.groupdict()
-        src = height = width = None
-        if 'src' in groups:
-            src = groups['src']
-        if 'height' in groups:
-            height = groups['height']
-        if 'width' in groups:
-            width = groups['width']
+        if match is None:
+            return None
+        result = transform.parse_regex_match(match, app_url=app_url)
+        if result is None:
+            return None
+        src, height, width, scheme, netloc, path, params, query, fragment = result
         return src, height, width
         
     def test_no_match(self):
-        strings = ['<img />',
-                   #'<img src="foo.png" />',
-                   #'<img height="480" />',
-                   #'<img width="640" />',
-                   #'<img width="640" height="480" />',
-                   ]
-        for s in strings:
-            match = transform.re_img.match(s)
-            self.assertTrue(match is None, s)
+        self.assertMatch('<img />', None)
+        self.assertMatch('<img src="foo.png"/>', None)
+        self.assertMatch('<img width="640"/>', None)
+        self.assertMatch('<img height="480"/>', None)
+        self.assertMatch('<img height="480%" width="640%"/>', None)
+        self.assertMatch('<img height="480" width="640"/>', None)
+        self.assertMatch(
+            "<img src='http://example.com/foo.png' width='640' height='480' />",
+            None,
+            app_url="http://example.example.com/")
 
     def test_matches(self):
-        groups = self.match("<img src='foo.png' width='640' fb:name='bobo' height='480' />")
-        self.assertEquals(groups, ('foo.png', '480', '640'))
-        groups = self.match('<img src="foo.png" width="640" fb:name="bobo" height="480" />')
-        self.assertEquals(groups, ('foo.png', '480', '640'))
-        groups = self.match('<img src="foo.png" width="640px" height="480px" />')
-        self.assertEquals(groups, ('foo.png', '480', '640'))
-    
+        self.assertMatch(
+            "<img src='foo.png' width='640' fb:name='bobo' height='480' />",
+            ('foo.png', '480', '640'))
+        self.assertMatch(
+            '<img\nsrc="foo.png"\r\nwidth="640"\theight="480"\n/>',
+            ('foo.png', '480', '640'))
+        self.assertMatch(
+            '<img src="foo.png" width="640" fb:name="bobo" height="480" />',
+            ('foo.png', '480', '640'))
+        self.assertMatch(
+            '<img src="foo.png" width="640px" height="480px" />',
+            ('foo.png', '480', '640'))
+        self.assertMatch(
+            "<img src='http://example.com/foo.png' width='640' height='480' />",
+            ('http://example.com/foo.png', '480', '640'))
+        self.assertMatch(
+            "<img src='http://example.com/foo.png' width='640' height='480' />",
+            ('http://example.com/foo.png', '480', '640'),
+            app_url="http://example.com/")
+
     def test_evil_matches(self):
         # evil stuff we actually find
-        groups = self.match('<img src=foo.png width=640 fb:name=bobo height=480 />')
-        self.assertEquals(groups, ('foo.png', '480', '640'))
+        self.assertMatch(
+            '<img src=foo.png width=640 fb:name=bobo height=480 />',
+            ('foo.png', '480', '640'))
 
-            
+
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
 IFhZWiAH1gAFABcADwALAAthY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAA

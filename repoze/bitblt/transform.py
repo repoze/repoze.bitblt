@@ -21,6 +21,18 @@ def compute_signature(width, height, key):
 def verify_signature(width, height, key, signature):
     return signature == compute_signature(width, height, key)
 
+def parse_regex_match(mo, app_url=None):
+    d = dict(src=None, height=None, width=None)
+    d.update(mo.groupdict())
+    src, height, width = d['src'], d['height'], d['width']
+    if not src or not (width or height):
+        return None
+    scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
+    if app_url is not None and not src.startswith(app_url):
+        if netloc != '':
+            return None
+    return src, height, width, scheme, netloc, path, params, query, fragment
+
 def rewrite_image_tags(body, key, app_url=None):
     mos =  re_img.finditer(body)
     index = 0
@@ -29,26 +41,21 @@ def rewrite_image_tags(body, key, app_url=None):
         # add section before current match to new body
         new_body.append(body[index:mo.start()])
         index = mo.end()
-        # work on <img> tag
-        d = dict(src=None, height=None, width=None)
-        d.update(mo.groupdict())
-        src, height, width = d['src'], d['height'], d['width']
-        new_body.append(body[mo.start():mo.end()])
         # check conditions in which we should skip this tag
-        if not src or not (width or height):
+        result = parse_regex_match(mo, app_url=app_url)
+        if result is None:
+            # nothing interesting here, carry on
+            new_body.append(body[mo.start():mo.end()])
             continue
-        scheme, netloc, path, params, query, fragment = urlparse.urlparse(src)
-        if app_url is not None and not src.startswith(app_url):
-            if netloc != '':
-                continue
+        src, height, width, scheme, netloc, path, params, query, fragment = result
         # calculate new src url 
         signature = compute_signature(width, height, key)
         parts = path.split('/')
         parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
         path = '/'.join(parts)
         src = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
-        # replace last element (which is the unmodified img tag)
-        new_body[-1:] = [body[mo.start():mo.start('src')], src, body[mo.end('src'):mo.end()]]
+        # add to new_body
+        new_body.extend([body[mo.start():mo.start('src')], src, body[mo.end('src'):mo.end()]])
     # add section after last match to new body
     new_body.append(body[index:])
     return ''.join(new_body)
