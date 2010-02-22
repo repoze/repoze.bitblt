@@ -88,7 +88,9 @@ class TestProfileMiddleware(unittest.TestCase):
         <html>
           <body>
             <img src="foo.png" width="640" height="480" />
-            <img src="/foo.png" width="640" height="480" />
+            <img src="/fob.png" width="640" height="480" />
+            <img src="path/foc.png" width="640" height="480" />
+            <img src="/path/fod.png" width="640" height="480" />
             <img src="http://host/bar.png" width="640" height="480" />
             <img src="http://host/path/hat.png" width="640" height="480" />
             <img src="blubb.png" />
@@ -127,10 +129,12 @@ class TestProfileMiddleware(unittest.TestCase):
         directive = "bitblt-%sx%s-%s" % (width, height, signature)
         body = "".join(result)
         self.failUnless(body.startswith('<!DOCTYPE'))
-        self.failUnless("%s/foo.png" % directive in body)
-        self.failUnless("/%s/foo.png" % directive in body)
-        self.failUnless("http://host/%s/bar.png" % directive in body)
-        self.failUnless("http://host/path/%s/hat.png" % directive in body)
+        self.failUnless('src="%s/foo.png"' % directive in body)
+        self.failUnless('src="/%s/fob.png"' % directive in body)
+        self.failUnless('src="path/%s/foc.png"' % directive in body)
+        self.failUnless('src="/path/%s/fod.png"' % directive in body)
+        self.failUnless('src="http://host/%s/bar.png"' % directive in body)
+        self.failUnless('src="http://host/path/%s/hat.png"' % directive in body)
         self.failUnless('src="blubb.png" />' in body)
         self.failUnless('src="percentage.png" width="100%"' in body)
         self.failUnless('src="percentage.png" width="50%" height="50%"' in body)
