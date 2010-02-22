@@ -13,7 +13,7 @@ re_img = re.compile(r'''<img'''
                         r'''|width=["']?(?P<width>\d*)(?:px)?["']?''' # or find width=
                         r'''|height=["']?(?P<height>\d*)(?:px)?["']?''' # or find height=
                         r'''|[\w:]*=(?:'[^']*'|"[^"]*"|[^<>"'\s]*)''' # or match but ignore most other tags
-                    r'''))+\s*/>''') # match whitespace at the end and the end tag
+                    r'''))+\s*/?>''') # match whitespace at the end and the end tag
 
 def compute_signature(width, height, key):
     return sha1("%s:%s:%s" % (width, height, key)).hexdigest()

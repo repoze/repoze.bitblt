@@ -402,25 +402,35 @@ class TestImgMatch(unittest.TestCase):
             app_url="http://example.example.com/")
 
     def test_matches(self):
+        # ' quoting attributes
         self.assertMatch(
             "<img src='foo.png' width='640' fb:name='bobo' height='480' />",
             ('foo.png', '480', '640'))
+        # weird whitespace in tag
         self.assertMatch(
             '<img\nsrc="foo.png"\r\nwidth="640"\theight="480"\n/>',
             ('foo.png', '480', '640'))
+        # namespaced attributes
         self.assertMatch(
             '<img src="foo.png" width="640" fb:name="bobo" height="480" />',
             ('foo.png', '480', '640'))
+        # px
         self.assertMatch(
             '<img src="foo.png" width="640px" height="480px" />',
             ('foo.png', '480', '640'))
+        # full url, no app_url
         self.assertMatch(
             "<img src='http://example.com/foo.png' width='640' height='480' />",
             ('http://example.com/foo.png', '480', '640'))
+        # full url matching app_url
         self.assertMatch(
             "<img src='http://example.com/foo.png' width='640' height='480' />",
             ('http://example.com/foo.png', '480', '640'),
             app_url="http://example.com/")
+        # no / in close (HTML 4)
+        self.assertMatch(
+            "<img src='foo.png' width='640' height='480' >",
+            ('foo.png', '480', '640'))
 
     def test_evil_matches(self):
         # evil stuff we actually find
