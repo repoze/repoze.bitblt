@@ -3,6 +3,8 @@ Changelog
 
 In next release...
 
+- If the original path is absolute make sure it remains so. [rob-b]
+
 - Re-write rewrite_image_tags to use regular expressions to find/mangle img
   tags. As well aas removing the dependency on lxml this  prevents a whole
   class of bugs where lxml was changing the HTML source too much, see

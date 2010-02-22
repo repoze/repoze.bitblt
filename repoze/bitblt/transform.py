@@ -52,7 +52,10 @@ def rewrite_image_tags(body, key, app_url=None):
         signature = compute_signature(width, height, key)
         parts = path.split('/')
         parts.insert(-1, 'bitblt-%sx%s-%s' % (width, height, signature))
-        path = '/'.join(parts)
+        path_is_absolute = path.startswith('/')
+        path = '/'.join(filter(None, parts))
+        if path_is_absolute:
+            path = '/%s' % path
         src = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
         # add to new_body
         new_body.extend([body[mo.start():mo.start('src')], src, body[mo.end('src'):mo.end()]])
