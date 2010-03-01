@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+x.x (unreleased)
+~~~~~~~~~~~~~~~~
+
+- No changes yet.
+
 0.8 (released 2010-03-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
