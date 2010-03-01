@@ -1,7 +1,16 @@
 Changelog
 ---------
 
-In next release...
+0.8 (released 2010-03-01)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The major change in the 0.8 release was a rewrite of the <img> tag search and
+replace to use regexs rather than lxml. It was proving too hard to prevent lxml
+from mangling low quality HTML in nasty ways. The new regex based
+search/replace takes a lot of care to only modify what is necessary.
+
+Side effects of this change are a reduction of dependencies and theoretically
+better performance.
 
 - Work with unclosed <img> tags (HTML4). [jinty]
 
