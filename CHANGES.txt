@@ -4,7 +4,8 @@ Changelog
 x.x (unreleased)
 ~~~~~~~~~~~~~~~~
 
-- No changes yet.
+- Remove paragraph in readme which mentions the try_xhtml option. It's now a
+  no-op. [jinty]
 
 0.8 (released 2010-03-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
