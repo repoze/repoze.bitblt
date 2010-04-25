@@ -1,5 +1,7 @@
 """ Middleware that transforms images."""
 
+from base64 import urlsafe_b64encode
+import os.path
 import re
 import webob
 
@@ -20,7 +22,8 @@ class ImageTransformationMiddleware(object):
     def __init__(self, app, global_conf=None, quality=80,
                  secret=None, filter='antialias',
                  limit_to_application_url=False,
-                 try_xhtml=False): # BBB
+                 try_xhtml=False, # BBB
+                 cache=None):
         if secret is None:
             raise ValueError("Must configure ``secret``.")
 
@@ -34,6 +37,7 @@ class ImageTransformationMiddleware(object):
             'antialias': Image.ANTIALIAS,
         }.get(filter.lower(), 'antialias')
         self.limit_to_application_url = limit_to_application_url
+        self.cache = cache
 
     def process(self, data, size):
         image = Image.open(data)
@@ -65,6 +69,7 @@ class ImageTransformationMiddleware(object):
             verified = verify_signature(width, height, self.secret, signature)
 
             # remove bitblt part in path info
+            full_path_info = request.path_info
             request.path_info = re_bitblt.sub("", request.path_info)
         else:
             verified = width = height = None
@@ -105,7 +110,20 @@ class ImageTransformationMiddleware(object):
                 if not hasattr(app_iter, 'read'):
                     app_iter = StringIO("".join(app_iter))
 
-                body = self.process(app_iter, size)
+                if self.cache:
+                    cache_key = urlsafe_b64encode(full_path_info)
+                    cache_file = os.path.join(self.cache, cache_key)
+                    if os.path.exists(cache_file):
+                        f = open(cache_file)
+                        body = f.read()
+                        f.close()
+                    else:
+                        body = self.process(app_iter, size)
+                        f = open(cache_file, 'w+')
+                        f.write(body)
+                        f.close()
+                else:
+                    body = self.process(app_iter, size)
                 response.body = body
 
         return response(environ, start_response)

@@ -4,6 +4,8 @@ Changelog
 x.x (unreleased)
 ~~~~~~~~~~~~~~~~
 
+- Add simplistic cache implementation. [damien]
+
 - Remove paragraph in readme which mentions the try_xhtml option. It's now a
   no-op. [jinty]
 

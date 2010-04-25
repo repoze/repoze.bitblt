@@ -374,6 +374,64 @@ class TestProfileMiddleware(unittest.TestCase):
             '200 OK', [('Content-Type', 'text/html; charset=UTF-8'),
                        ('Content-Length', str(len(result)))]])
 
+
+    def test_cache(self):
+        response = []
+        def mock_start_response(status, headers, exc_info=None):
+            response.extend((status, headers))
+
+        def mock_app(environ, start_response):
+            response = webob.Response(
+                jpeg_image_data, content_type='image/jpeg')
+            response(environ, start_response)
+            return (response.body, )
+
+        def make_request(secret):
+            width = height = 100
+            signature = transform.compute_signature(
+                width, height, secret)
+            return webob.Request.blank('bitblt-%sx%s-%s/foo.jpg' % (
+                    width, height, signature))
+
+        def process_with_counter(self, *args, **kwargs):
+            self.processed = getattr(self, 'processed', 0) + 1
+            return self._orig_process(*args, **kwargs)
+
+        import os
+        import os.path
+        import tempfile
+        temp_dir = os.path.join(tempfile.gettempdir(),
+                                'repoze.bitblt-tests-%s' % os.getpid())
+        os.mkdir(temp_dir)
+        try:
+            from repoze.bitblt.processor import ImageTransformationMiddleware
+
+            ImageTransformationMiddleware._orig_process = ImageTransformationMiddleware.process
+            ImageTransformationMiddleware.process = process_with_counter
+            middleware = self._makeOne(mock_app, cache=temp_dir)
+            request = make_request(middleware.secret)
+            result = middleware(request.environ, mock_start_response)
+            self.assertEqual(middleware.processed, 1)
+
+            ## Second pass, test that we did not process the image
+            middleware = self._makeOne(mock_app, cache=temp_dir)
+            request = make_request(middleware.secret)
+            cached_result = middleware(request.environ, mock_start_response)
+            self.assertEqual(getattr(middleware, 'processed', 0), 0)
+            self.assertEqual(result, cached_result)
+
+            ## Third pass, no cache
+            middleware = self._makeOne(mock_app, cache=None)
+            request = make_request(middleware.secret)
+            middleware(request.environ, mock_start_response)
+            self.assertEqual(middleware.processed, 1)
+        finally:
+            for path in os.listdir(temp_dir):
+                os.remove(os.path.join(temp_dir, path))
+            os.rmdir(temp_dir)
+            ImageTransformationMiddleware.process = ImageTransformationMiddleware._orig_process
+
+
 class TestImgMatch(unittest.TestCase):
 
     def assertMatch(self, tag, result, app_url=None):

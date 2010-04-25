@@ -20,6 +20,14 @@ By default all image URLs are rewritten. With ``limit_to_application_url``
 you can limit the rewriting to relative URLs and absolute URLs below the
 application URL.
 
+A minimal cache implementation is available with the ``cache``
+parameter. It should be the path to a directory where generated images
+will be saved. This is a very simplistic approach that does not use
+any possibly related HTTP header at all: ``Last-Modified``,
+``Expires``, etc. The only way to refresh or empty the cache is to
+delete the files. This feature is disabled by default.
+
+
 Usage
 -----
 
