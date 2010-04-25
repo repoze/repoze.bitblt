@@ -259,7 +259,8 @@ class TestProfileMiddleware(unittest.TestCase):
         result = middleware(request.environ, mock_start_response)
         self.assertEqual(len("".join(result)), 1050)
         status, headers = response
-        headers = webob.HeaderDict(headers)
+
+        headers = webob.headerdict.HeaderDict(headers)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], '1050')
@@ -281,7 +282,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         result = middleware(request.environ, mock_start_response)
         status, headers = response
-        headers = webob.HeaderDict(headers)
+        headers = webob.headerdict.HeaderDict(headers)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], str(len(jpeg_image_data)))
