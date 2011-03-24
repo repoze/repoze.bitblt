@@ -4,6 +4,8 @@ Changelog
 x.x (unreleased)
 ~~~~~~~~~~~~~~~~
 
+- Maintain embedded ICC Profiles in images. Requires PIL 1.1.7 or later.
+
 - Add simplistic cache implementation. [damien]
 
 - Remove paragraph in readme which mentions the try_xhtml option. It's now a

@@ -217,6 +217,28 @@ class TestProfileMiddleware(unittest.TestCase):
         self.assertEqual(image.size, (32, 32))
         self.assertEqual(image.info.get('transparency'), 156)
 
+    def test_keep_icc_profile(self):
+        middleware = self._makeOne(None)
+        orig = Image.open(StringIO(jpeg_image_data))
+        orig_icc = orig.info.get('icc_profile')
+        self.assertNotEqual(orig_icc, None, 'Keeping ICC profiles requires PIL 1.1.7 or greater')
+        orig_size = Image.open(StringIO(jpeg_image_data)).size
+        # icc profiles are maintained in original images
+        f = middleware.process(StringIO(jpeg_image_data), orig_size)
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.info.get('icc_profile'), orig_icc)
+        # and resized ones
+        f = middleware.process(StringIO(jpeg_image_data), (32, 32))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.info.get('icc_profile'), orig_icc)
+        # images without icc_profiles don't magically get them
+        no_icc = StringIO()
+        orig.save(no_icc, 'JPEG')
+        no_icc.seek(0)
+        f = middleware.process(no_icc, (32, 32))
+        image = Image.open(StringIO(f))
+        self.assertEqual(image.info.get('icc_profile'), None)
+
     def test_call_content_type_not_image(self):
         body = "<html><body>Hello, world!</body></html>"
         request = webob.Request.blank("")

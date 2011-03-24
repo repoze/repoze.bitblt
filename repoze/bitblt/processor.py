@@ -47,6 +47,11 @@ class ImageTransformationMiddleware(object):
         if transparency is not None:
             kw['transparency'] = transparency
 
+        # maintian icc_profile if we find it, requires PIL 1.1.7 or greater
+        icc_profile = image.info.get('icc_profile', None)
+        if icc_profile is not None:
+            kw['icc_profile'] = icc_profile
+
         if size != image.size:
             if size[0] is None:
                 size = (image.size[0], size[1])
