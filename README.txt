@@ -54,6 +54,13 @@ Note that this middleware is protected from DoS attacks (which is
 important for any middleware that does significant processing) by
 signing all URLs with an SHA digest signature.
 
+
+Contributing
+------------
+
+The development of repoze.bitblt happens at github: https://github.com/repoze/repoze.bitblt
+
+
 Credits
 -------
 
