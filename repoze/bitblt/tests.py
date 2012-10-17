@@ -3,8 +3,15 @@ import base64
 import webob
 import urllib
 import transform
-
 from StringIO import StringIO
+
+try:
+    # webob >= 1.0
+    from webob.headers import ResponseHeaders
+except ImportError:
+    # webob < 1.0
+    from webob.headerdict import HeaderDict as ResponseHeaders
+
 try:
     import PIL.Image as Image
 except ImportError:
@@ -282,7 +289,7 @@ class TestProfileMiddleware(unittest.TestCase):
         response_length = len("".join(result))
         status, headers = response
 
-        headers = webob.headerdict.HeaderDict(headers)
+        headers = ResponseHeaders(headers)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], str(response_length))
@@ -304,7 +311,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         result = middleware(request.environ, mock_start_response)
         status, headers = response
-        headers = webob.headerdict.HeaderDict(headers)
+        headers = ResponseHeaders(headers)
         self.assertEqual(status, '200 OK')
         self.assertEqual(headers['content-type'], 'image/jpeg')
         self.assertEqual(headers['content-length'], str(len(jpeg_image_data)))
