@@ -1,0 +1,4 @@
+include CHANGES.txt
+include CONTRIBUTORS.txt
+include LICENSE.txt
+include README.txt
