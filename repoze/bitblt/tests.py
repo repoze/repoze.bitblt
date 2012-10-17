@@ -246,6 +246,48 @@ class TestProfileMiddleware(unittest.TestCase):
         image = Image.open(StringIO(f))
         self.assertEqual(image.info.get('icc_profile'), None)
 
+    def test_non_utf8_url_non_image(self):
+        body = "Hi"
+        request = webob.Request.blank("not-utf-8-\xfe")
+
+        def mock_app(environ, start_response):
+            response = webob.Response(body, content_type='text/plain')
+            response(environ, start_response)
+            return [response.body]
+
+        def start_response(*args):
+            pass
+
+        middleware = self._makeOne(mock_app)
+        result = middleware(request.environ, start_response)
+        self.assertEqual(result, [body])
+
+    def test_non_utf8_url_image(self):
+        response = []
+
+        def mock_start_response(status, headers, exc_info=None):
+            response.extend((status, headers))
+
+        def mock_app(environ, start_response):
+            self.failIf('bitblt' in environ.get('PATH_INFO'))
+            response = webob.Response(jpeg_image_data, content_type='image/jpeg')
+            response(environ, start_response)
+            return (response.body,)
+
+        middleware = self._makeOne(mock_app)
+
+        width = height = "32"
+        signature = transform.compute_signature(width, height, middleware.secret)
+
+        request = webob.Request.blank('not-utf-8-\xfe/bitblt-%sx%s-%s/foo.jpg' % (
+            width, height, signature))
+
+        result = middleware(request.environ, mock_start_response)
+        status, headers = response
+
+        self.assertEqual(status, '200 OK')
+        self.assertNotEqual(''.join(result), jpeg_image_data)
+
     def test_call_content_type_not_image(self):
         body = "<html><body>Hello, world!</body></html>"
         request = webob.Request.blank("")

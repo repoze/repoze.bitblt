@@ -64,9 +64,8 @@ class ImageTransformationMiddleware(object):
         return f.getvalue()
 
     def __call__(self, environ, start_response):
-        request = webob.Request(environ)
-
-        m = re_bitblt.search(request.path_info)
+        path_info = environ['PATH_INFO']
+        m = re_bitblt.search(path_info)
         if m is not None:
             width = m.group('width')
             height = m.group('height')
@@ -74,11 +73,12 @@ class ImageTransformationMiddleware(object):
             verified = verify_signature(width, height, self.secret, signature)
 
             # remove bitblt part in path info
-            full_path_info = request.path_info
-            request.path_info = re_bitblt.sub("", request.path_info)
+            full_path_info = path_info
+            environ['PATH_INFO'] = re_bitblt.sub("", path_info)
         else:
             verified = width = height = None
 
+        request = webob.Request(environ)
         response = request.get_response(self.app)
 
         if response.content_type and \

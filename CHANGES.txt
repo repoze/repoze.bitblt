@@ -11,6 +11,8 @@ x.x (unreleased)
 - Remove paragraph in readme which mentions the try_xhtml option. It's now a
   no-op. [jinty]
 
+- Use PATH_INFO directly to avoid blowing up on non UTF-8 paths.
+
 0.8 (released 2010-03-01)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
