@@ -4,7 +4,9 @@ Changelog
 x.y (released unknown)
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- No changes yet.
+- Don't error on HEAD requests as the response has an empty body. Also
+  remove the Content-Length header as we cannot calculate the right
+  value without knowing the image.
 
 0.9 (released 2012-10-18)
 ~~~~~~~~~~~~~~~~~~~~~~~~~

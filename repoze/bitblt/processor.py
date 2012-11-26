@@ -111,6 +111,13 @@ class ImageTransformationMiddleware(object):
                     raise ValueError(
                         "Width and height parameters must be integers.")
 
+                if request.method == 'HEAD':
+                    # Remove the content_lenght header as it's guarenteed
+                    # to be wrong. If this were not a HEAD, we would resize.
+                    response.content_length = None
+                    # Don't attempt to resize, our body may not be there.
+                    return response(environ, start_response)
+
                 app_iter = response.app_iter
                 if not hasattr(app_iter, 'read'):
                     app_iter = StringIO("".join(app_iter))
