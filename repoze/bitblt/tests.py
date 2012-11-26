@@ -35,8 +35,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -69,8 +68,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -121,8 +119,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -172,8 +169,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -252,8 +248,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/plain')
-            response(environ, start_response)
-            return [response.body]
+            return response(environ, start_response)
 
         def start_response(*args):
             pass
@@ -271,8 +266,7 @@ class TestProfileMiddleware(unittest.TestCase):
         def mock_app(environ, start_response):
             self.failIf('bitblt' in environ.get('PATH_INFO'))
             response = webob.Response(jpeg_image_data, content_type='image/jpeg')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         middleware = self._makeOne(mock_app)
 
@@ -294,8 +288,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -316,8 +309,7 @@ class TestProfileMiddleware(unittest.TestCase):
         def mock_app(environ, start_response):
             self.failIf('bitblt' in environ.get('PATH_INFO'))
             response = webob.Response(jpeg_image_data, content_type='image/jpeg')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         middleware = self._makeOne(mock_app)
 
@@ -345,8 +337,7 @@ class TestProfileMiddleware(unittest.TestCase):
         def mock_app(environ, start_response):
             self.failIf('bitblt' in environ.get('PATH_INFO'))
             response = webob.Response(jpeg_image_data, content_type='image/jpeg')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         middleware = self._makeOne(mock_app)
         request = webob.Request.blank('foo.jpg')
@@ -364,8 +355,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response('', content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -387,8 +377,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html', charset='UTF-8')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -429,8 +418,7 @@ class TestProfileMiddleware(unittest.TestCase):
 
         def mock_app(environ, start_response):
             response = webob.Response(body, content_type='text/html')
-            response(environ, start_response)
-            return (response.body,)
+            return response(environ, start_response)
 
         response = []
         def start_response(*args):
@@ -454,8 +442,7 @@ class TestProfileMiddleware(unittest.TestCase):
         def mock_app(environ, start_response):
             response = webob.Response(
                 jpeg_image_data, content_type='image/jpeg')
-            response(environ, start_response)
-            return (response.body, )
+            return response(environ, start_response)
 
         def make_request(secret):
             width = height = 100
