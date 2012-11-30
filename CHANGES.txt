@@ -4,6 +4,9 @@ Changelog
 x.y (released unknown)
 ~~~~~~~~~~~~~~~~~~~~~~
 
+- Don't error trying to process .ico files. Just return the original
+  data.
+
 - Don't error on HEAD requests as the response has an empty body. Also
   remove the Content-Length header as we cannot calculate the right
   value without knowing the image.

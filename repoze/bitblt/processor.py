@@ -41,6 +41,10 @@ class ImageTransformationMiddleware(object):
 
     def process(self, data, size):
         image = Image.open(data)
+        if image.format.upper() == 'ICO':
+            # can't save these
+            # so we just return the original
+            return data
 
         kw = {'quality': self.quality}
         transparency = image.info.get('transparency', None)

@@ -207,6 +207,11 @@ class TestProfileMiddleware(unittest.TestCase):
         image = Image.open(StringIO(f))
         self.assertEqual(image.size, (32, 32))
 
+    def test_dont_fail_with_ico(self):
+        middleware = self._makeOne(None)
+        # failed because PIL could not save ICO files
+        middleware.process(StringIO(ico_image_data), (5, 4))
+
     def test_keep_gif_transparency(self):
         middleware = self._makeOne(None)
         # resize non-transparent gif
@@ -584,6 +589,13 @@ class TestImgMatch(unittest.TestCase):
             '<img src=foo.png width=640 fb:name=bobo height=480 />',
             ('foo.png', '480', '640'))
 
+# .ico image 10px wide, 5px tall
+ico_image_data = base64.decodestring("""\
+AAABAAEACgUAAAAAIAAEAQAAFgAAACgAAAAKAAAACgAAAAEAIAAAAAAAkAEAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAD/AAAA/wAAAP//AAD/""")
 
 jpeg_image_data = base64.decodestring("""\
 /9j/4AAQSkZJRgABAQEASABIAAD/4gPwSUNDX1BST0ZJTEUAAQEAAAPgYXBwbAIAAABtbnRyUkdC
